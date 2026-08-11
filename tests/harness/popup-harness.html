@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Popup harness</title>
+    <link rel="stylesheet" href="/dist/popup.css" />
+    <style>
+      body { width: auto; max-width: 420px; }
+      .case { margin: 0 0 8px; font: 12px ui-monospace, Consolas, monospace; color: #666; }
+    </style>
+  </head>
+  <body>
+    <p class="case" id="case">case: —</p>
+    <h1>Recruiter Assistant</h1>
+    <div id="report">Checking…</div>
+    <div class="actions">
+      <button id="options" type="button">Settings</button>
+      <button id="recheck" type="button" class="ghost">Re-check</button>
+    </div>
+
+    <script>
+      /*
+       * The popup depends on chrome.tabs, which the other harnesses do not stub, so
+       * until now it was only typechecked — never executed. Pick a scenario with
+       * ?case=…: outlook-compose | outlook-inbox | not-injected | wrong-host
+       */
+      const CASE = new URLSearchParams(location.search).get('case') || 'outlook-inbox';
+      document.getElementById('case').textContent = `case: ${CASE}`;
+
+      const TAB = {
+        'outlook-compose': { url: 'https://outlook.cloud.microsoft/mail/deeplink/compose?mailtouri=mailto%3Aa%40b.com' },
+        'outlook-inbox': { url: 'https://outlook.cloud.microsoft/mail/inbox/id/MSG-1' },
+        'not-injected': { url: 'https://outlook.cloud.microsoft/mail/' },
+        'wrong-host': { url: 'https://outlook.example.net/mail/' },
+      }[CASE];
+
+      const PONG = {
+        'outlook-compose': {
+          type: 'RA_PONG', version: '0.1.0-harness', host: 'outlook.cloud.microsoft',
+          path: '/mail/deeplink/compose', topFrame: true, assistantMounted: true,
+          composeDetected: true, candidateEmail: 'esrisanjay2005@gmail.com',
+          sourceMessageOpen: false, snapshot: null,
+        },
+        'outlook-inbox': {
+          type: 'RA_PONG', version: '0.1.0-harness', host: 'outlook.cloud.microsoft',
+          path: '/mail/inbox/id/MSG-1', topFrame: true, assistantMounted: false,
+          composeDetected: false, sourceMessageOpen: true,
+          snapshot: {
+            messageId: 'MSG-1', sender: 'LinkedIn',
+            subject: 'New application: AI Full Stack Software Engineer from Sri Sanjay',
+            looksLikeApplication: true, paneVia: 'role=document/article',
+          },
+        },
+        'not-injected': null,
+        'wrong-host': null,
+      }[CASE];
+
+      window.chrome = {
+        runtime: {
+          getManifest: () => ({ version: '0.1.0-harness' }),
+          openOptionsPage: () => console.log('openOptionsPage'),
+          sendMessage: async (msg) => {
+            if (msg.type === 'RA_LAST_DECISION') {
+              return {
+                decision:
+                  CASE === 'outlook-inbox'
+                    ? { outcome: 'offered', reason: 'prompt shown in the inbox tab for "New application: …"', at: Date.now() - 90_000 }
+                    : { outcome: 'blocked', reason: 'no send was confirmed (the draft was discarded)', at: Date.now() - 30_000 },
+              };
+            }
+            return {};
+          },
+        },
+        tabs: {
+          query: async () => [{ id: 7, ...TAB }],
+          sendMessage: async () => {
+            if (!PONG) throw new Error('no receiving end');
+            return PONG;
+          },
+        },
+      };
+    </script>
+    <script src="/dist/popup.js"></script>
+  </body>
+</html>

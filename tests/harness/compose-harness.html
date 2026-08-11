@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Recruiter Assistant — compose fill harness</title>
+    <style>
+      body { margin: 0; padding: 20px; font: 14px/1.5 "Segoe UI", system-ui, sans-serif; background: #faf9f8; }
+      #note { max-width: 700px; padding: 12px 14px; background: #fff; border-left: 3px solid #0f6cbd;
+        border-radius: 4px; margin-bottom: 18px; }
+      .compose { background: #fff; border: 1px solid #e1dfdd; border-radius: 6px; max-width: 900px; }
+      .toolbar { display: flex; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #edebe9; align-items: center; }
+      .toolbar button { padding: 5px 14px; border-radius: 4px; border: 1px solid #0f6cbd;
+        background: #0f6cbd; color: #fff; font: inherit; cursor: pointer; }
+      .toolbar button.ghost { background: #fff; color: #201f1e; border-color: #c8c6c4; }
+      .row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #edebe9; }
+      .row > .lbl { flex: 0 0 44px; padding: 4px 8px; border: 1px solid #c8c6c4; border-radius: 4px;
+        font-size: 12px; text-align: center; }
+      #to-well { flex: 1; display: flex; gap: 6px; align-items: center; }
+      .chip { display: inline-flex; gap: 6px; align-items: center; padding: 3px 8px;
+        border: 1px solid #c8c6c4; border-radius: 14px; font-size: 12.5px; }
+      #subject-input { flex: 1; border: 0; outline: none; font: inherit; padding: 6px 0; }
+      #body-editor { min-height: 220px; padding: 14px; outline: none; }
+      #log { max-width: 900px; margin-top: 16px; padding: 10px; background: #1b1a19; color: #d6d6d6;
+        border-radius: 4px; font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <div id="note">
+      <strong>Local harness — not Outlook.</strong> Mimics the ribbon compose surface from the real
+      screenshots: a <code>To</code> chip carrying <code>addr &lt;addr&gt;</code>, a subject
+      <code>&lt;input&gt;</code> labelled “Add a subject”, and a rich-text
+      <code>contenteditable</code> body. The <code>Send</code> button here only logs — it proves the
+      extension never clicks it.
+    </div>
+
+    <div class="compose" role="dialog" aria-label="Compose message">
+      <div class="toolbar" role="toolbar" aria-label="Compose toolbar">
+        <button id="send-button" aria-label="Send">Send</button>
+        <button class="ghost" id="discard-button" aria-label="Discard">Discard</button>
+        <span>From: Ravilochan@cloudsecurityweb.com</span>
+      </div>
+
+      <div class="row">
+        <span class="lbl">To</span>
+        <div id="to-well" role="combobox" aria-label="To" aria-expanded="false">
+          <span
+            class="chip"
+            role="listitem"
+            aria-label="esrisanjay2005@gmail.com &lt;esrisanjay2005@gmail.com&gt;"
+            title="esrisanjay2005@gmail.com"
+            >esrisanjay2005@gmail.com &lt;esrisanjay2005@gmail.com&gt;
+            <button aria-label="Remove esrisanjay2005@gmail.com">×</button></span
+          >
+        </div>
+      </div>
+
+      <div class="row">
+        <input type="text" id="subject-input" aria-label="Add a subject" placeholder="Add a subject" />
+        <span>Draft saved at 12:14 PM</span>
+      </div>
+
+      <div
+        id="body-editor"
+        role="textbox"
+        contenteditable="true"
+        aria-label="Message body"
+        aria-multiline="true"
+      ></div>
+    </div>
+
+    <div id="log">waiting…</div>
+
+    <script>
+      // Reproduces settings written by an earlier build: same wording, no
+      // blank-line spacers. The migration should replace it on load.
+      const STALE_SEED = [
+        '<p>Thank you for your interest in <strong>{{JOB_TITLE}}</strong> position at <strong>{{COMPANY}}</strong> and for taking the time to apply.</p>',
+        '<p>After careful consideration, we\u2019ve decided to move forward with other candidates whose skills and experience more closely match our current needs.</p>',
+        '<p>We appreciate your time and interest in joining our team, and we wish you all the best in your job search.</p>',
+        '<p>Best regards,<br />{{SENDER_NAME}}<br />{{SENDER_TITLE}}</p>',
+      ].join('\n');
+
+      (function stubChrome() {
+        const store = new URLSearchParams(location.search).has('stale')
+          ? {
+              settings: {
+                templates: {
+                  'reject-direct': {
+                    id: 'reject-direct',
+                    label: 'Reject',
+                    description: 'stale',
+                    subject: 'Update on Your Application',
+                    bodyHtml: STALE_SEED,
+                    requiresBookingUrl: false,
+                    tone: 'negative',
+                    isPlaceholder: false,
+                  },
+                },
+              },
+            }
+          : {};
+        const listeners = [];
+        window.chrome = {
+          runtime: {
+            getManifest: () => ({ version: '0.1.0-harness' }),
+            onMessage: { addListener: () => {} },
+            openOptionsPage: () => {},
+            sendMessage: async (m) => {
+              (window.__bg = window.__bg || []).push(m);
+              return { ok: true };
+            },
+          },
+          storage: {
+            local: {
+              get: async (key) => (key in store ? { [key]: store[key] } : {}),
+              set: async (obj) => {
+                Object.assign(store, obj);
+                for (const cb of listeners) {
+                  cb(Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, { newValue: v }])), 'local');
+                }
+              },
+            },
+            onChanged: { addListener: (cb) => listeners.push(cb) },
+          },
+        };
+      })();
+
+      // Records that the extension never triggers Outlook's own Send, by click or
+      // by keyboard.
+      window.__sendClicked = false;
+      window.__cmdEnterSeen = false;
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+          window.__cmdEnterSeen = true;
+          document.getElementById('log').textContent += '\nCMD+ENTER (Outlook would send)';
+        }
+      });
+      document.getElementById('send-button').addEventListener('click', () => {
+        window.__sendClicked = true;
+        document.getElementById('log').textContent += '\nSEND CLICKED BY SOMETHING';
+      });
+
+      // Mimics a React-controlled input: anything that writes .value without
+      // going through the native setter + input event gets reverted, which is
+      // exactly the failure mode the fill layer has to survive.
+      (function simulateControlledInput() {
+        const input = document.getElementById('subject-input');
+        let model = '';
+        const desc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+        input.addEventListener('input', () => {
+          model = desc.get.call(input);
+        });
+        setInterval(() => {
+          const current = desc.get.call(input);
+          if (current !== model) desc.set.call(input, model);
+        }, 50);
+      })();
+    </script>
+    <script src="/dist/content.js"></script>
+  </body>
+</html>

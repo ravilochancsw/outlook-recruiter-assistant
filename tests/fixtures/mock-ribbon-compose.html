@@ -1,0 +1,26 @@
+<!--
+  Mimics the ribbon compose surface seen in the real screenshots, including the
+  `From:` address inside the same dialog as the recipient chips. That From
+  address is what made the recipient scan report two recipients.
+-->
+<div class="compose" role="dialog" aria-label="Compose message">
+  <div class="toolbar" role="toolbar" aria-label="Compose toolbar">
+    <button id="send-button" aria-label="Send">Send</button>
+    <button id="discard-button" aria-label="Discard">Discard</button>
+    <span id="from-row">From: Ravilochan@cloudsecurityweb.com</span>
+  </div>
+  <div class="row">
+    <span class="lbl">To</span>
+    <div id="to-well" role="combobox" aria-label="To" aria-expanded="false">
+      <span class="chip" role="listitem"
+            aria-label="esrisanjay2005@gmail.com &lt;esrisanjay2005@gmail.com&gt;"
+            title="esrisanjay2005@gmail.com">esrisanjay2005@gmail.com
+        <button aria-label="Remove esrisanjay2005@gmail.com">x</button></span>
+    </div>
+  </div>
+  <div class="row">
+    <input type="text" id="subject-input" aria-label="Add a subject" placeholder="Add a subject" />
+    <span>Draft saved at 12:14 PM</span>
+  </div>
+  <div id="body-editor" role="textbox" contenteditable="true" aria-label="Message body" aria-multiline="true"></div>
+</div>

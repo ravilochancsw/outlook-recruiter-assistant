@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8" /><title>Source tab harness</title>
+<style>
+body{margin:0;padding:20px;font:14px/1.5 "Segoe UI",system-ui,sans-serif;background:#faf9f8}
+#note{max-width:700px;padding:12px 14px;background:#fff;border-left:3px solid #0f6cbd;border-radius:4px;margin-bottom:18px}
+.pane{background:#fff;border:1px solid #e1dfdd;border-radius:6px;max-width:860px}
+.ribbon{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid #edebe9;align-items:center}
+.ribbon button{padding:5px 12px;border-radius:4px;border:1px solid #c8c6c4;background:#fff;font:inherit;cursor:pointer}
+.msg{padding:16px}
+h1{font-size:17px;margin:0 0 10px}
+#log{max-width:860px;margin-top:14px;padding:10px;background:#1b1a19;color:#d6d6d6;border-radius:4px;
+ font-family:ui-monospace,Consolas,monospace;font-size:11.5px;white-space:pre-wrap}
+</style></head>
+<body>
+<div id="note"><strong>Local harness — not Outlook.</strong> Mimics the inbox tab with a LinkedIn
+application email open. Drives the deletion-offer flow directly, since the real one arrives from the
+service worker.</div>
+
+<!-- The resume preview overlay, still open in this tab, covering the reading pane. -->
+<div id="preview-overlay" role="dialog" aria-label="Attachment preview"
+     style="position:fixed;inset:40px;background:#fff;border:1px solid #ccc;border-radius:6px;z-index:50;padding:14px">
+  <div style="display:flex;gap:14px;align-items:center;border-bottom:1px solid #eee;padding-bottom:10px">
+    <strong>Sri_Sanjay_E_Resume.pdf</strong>
+    <button>Download</button><button>Print</button><button>Save to OneDrive</button>
+    <span style="flex:1"></span>
+    <button aria-label="Close" id="preview-close">×</button>
+  </div>
+  <p style="margin-top:14px">…resume contents…</p>
+</div>
+
+<div class="pane">
+  <div class="ribbon" role="toolbar" aria-label="Message actions">
+    <button aria-label="Delete" id="delete-button">Delete</button>
+    <button aria-label="Archive">Archive</button>
+    <button aria-label="Reply">Reply</button>
+  </div>
+  <div role="region" aria-label="Reading Pane">
+    <div role="document" id="message-container">
+      <div class="msg">
+        <h1 role="heading" aria-level="1" id="message-subject">New application: AI Full Stack Software Engineer from Sri Sanjay</h1>
+        <div><span id="sender" title="jobs-noreply@linkedin.com" aria-label="LinkedIn &lt;jobs-noreply@linkedin.com&gt;">LinkedIn</span></div>
+        <p>You have a new applicant ready for review.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="log">waiting…</div>
+
+<script>
+(function stubChrome(){
+  const store={};const listeners=[];window.__sent=[];window.__handlers=[];
+  window.chrome={
+    runtime:{
+      getManifest:()=>({version:'0.1.0-harness'}),
+      onMessage:{addListener:(cb)=>window.__handlers.push(cb)},
+      sendMessage:async(m)=>{window.__sent.push(m);
+        document.getElementById('log').textContent+='\n→ bg: '+JSON.stringify(m);return {ok:true};},
+      openOptionsPage:()=>{},
+    },
+    storage:{
+      local:{get:async(k)=>(k in store?{[k]:store[k]}:{}),set:async(o)=>{Object.assign(store,o);
+        for(const cb of listeners)cb(Object.fromEntries(Object.entries(o).map(([k,v])=>[k,{newValue:v}])),'local');},
+        remove:async(k)=>{delete store[k];}},
+      onChanged:{addListener:(cb)=>listeners.push(cb)},
+      session:{get:async()=>({}),set:async()=>{}},
+    },
+    tabs:{query:async()=>[],sendMessage:async()=>({})},
+  };
+})();
+// Records whether anything clicks Delete without being told to.
+window.__deleteClicks=0;
+document.getElementById('preview-close').addEventListener('click',()=>{
+  document.getElementById('preview-overlay').remove();
+  document.getElementById('log').textContent+='\nPREVIEW CLOSED';
+});
+document.getElementById('delete-button').addEventListener('click',()=>{
+  window.__deleteClicks++;
+  document.getElementById('log').textContent+='\nDELETE CLICKED';
+  // Outlook navigates away from the deleted message.
+  history.pushState({},'','/tests/harness/source-harness.html');
+});
+</script>
+<script src="/dist/content.js"></script>
+</body></html>

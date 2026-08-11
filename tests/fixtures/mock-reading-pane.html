@@ -1,0 +1,32 @@
+<!--
+  A *hypothetical* Outlook reading pane showing a LinkedIn application email.
+  As with the compose fixture: this validates the diagnostic engine, it does
+  not assert anything about Outlook's real DOM.
+-->
+<div id="app">
+  <div role="main" aria-label="Mail">
+    <div role="region" aria-label="Reading Pane" id="reading-pane">
+      <div role="document" id="message-container">
+        <h1 role="heading" aria-level="1" id="message-subject">
+          New application: Software Engineer
+        </h1>
+        <div id="sender-row">
+          <span
+            id="sender"
+            title="jobs-noreply@linkedin.com"
+            aria-label="LinkedIn &lt;jobs-noreply@linkedin.com&gt;"
+            >LinkedIn</span
+          >
+        </div>
+        <div id="message-body">
+          <p>You have a new application from Jane Roe.</p>
+        </div>
+      </div>
+      <div role="toolbar" aria-label="Message actions">
+        <button aria-label="Delete" id="delete-button">Delete</button>
+        <button aria-label="Reply" id="reply-button">Reply</button>
+        <button aria-label="Archive" id="archive-button">Archive</button>
+      </div>
+    </div>
+  </div>
+</div>
