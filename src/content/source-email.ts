@@ -444,6 +444,9 @@ function bindCardKeys(onConfirm: () => void, onDismiss: () => void): void {
 }
 
 function mountCard(): ShadowRoot {
+  // Unconditional, like the startup line: "the prompt did not appear" is otherwise
+  // indistinguishable from "the prompt appeared and something removed it".
+  console.log('[RecruiterAssistant] cleanup prompt mounted');
   host?.remove();
   host = document.createElement('div');
   host.id = HOST_ID;
@@ -506,6 +509,7 @@ async function performDelete(offer: OfferDeletionMsg): Promise<void> {
 }
 
 export function handleDeletionOffer(offer: OfferDeletionMsg): void {
+  console.log('[RecruiterAssistant] cleanup offer received for', offer.actionLabel);
   // Re-verify before even offering, so the prompt is never shown for a message
   // that has already changed underneath us.
   const verdict = verifySourceStillMatches(offer.snapshot);

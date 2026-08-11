@@ -81,6 +81,10 @@ function installListeners(): void {
       }
 
       case 'RA_OFFER_DELETION': {
+        // Only the top frame speaks for the tab. A sub-frame would build the card
+        // inside an iframe where it cannot be seen, and would still answer the
+        // message — so the offer could be consumed by an invisible copy.
+        if (!isTopFrame()) return false;
         handleDeletionOffer(message as OfferDeletionMsg);
         respond({ ok: true });
         return true;
