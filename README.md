@@ -77,13 +77,53 @@ All four carry confirmed copy. The panel appears only when a compose surface is 
 **and** the To field holds exactly one recipient — with two, there is no way to be
 certain who the email is for, so it refuses and says so.
 
-The two screening templates are the same round with a different interviewer. Both set
-the expectation that the 20 minutes goes on technical substance rather than a resume
-walkthrough, and both say plainly there is no coding exercise but that the candidate
-should arrive able to talk about one or two projects in real depth. The self-run version
-is first person; the delegated one names the interviewer, their role, and makes them the
-point of contact for the stage. Each carries its own Bookings link — that is the entire
-difference between the two actions, and clearing one blocks only that action.
+Each screening template carries its own Bookings link — that is the entire difference
+between the two actions, and clearing one blocks only that action.
+
+### What the screening round is, and why the copy reads that way
+
+The screening is the **first** conversation: 20 minutes on Teams, run either by the Head
+of Engineering or delegated to an engineer on the team. Its only job is to answer one
+binary question — *would I spend an hour on this person?* No coding, no problem-solving,
+no resume walkthrough.
+
+That makes the copy a set of deliberate decisions, each enforced by a test:
+
+- **The candidate is asked to bring one or two projects**, and told the three things they
+  will be asked about: what they built and which part was theirs, why they built it that
+  way and what they considered instead, and what they would do differently now. These are
+  the things that cannot be rehearsed from a job description, and they are what the round
+  actually probes.
+- **No mention of later rounds.** What comes next is disclosed only if the candidate
+  progresses, or answered live if they ask on the call. Naming it in the email invites
+  questions that do not belong in a 20-minute screen.
+- **No "why do you want to work here".** The email promises not to walk the resume, and
+  that question produces the most rehearsed answer in interviewing. It is also not part
+  of the 20 minutes.
+- **No seniority signalling.** Telling a candidate the interviewer is busy makes them
+  defensive, and a defensive candidate performs below their real level — which costs
+  signal in exactly the time being protected. Brevity and precision carry the weight.
+- **The subject stays `Technical Screening`.** It is a screening round, and the
+  conventional term sets the right expectation even though the conversation itself is
+  informal.
+
+Both versions run the same agenda; only the interviewer changes. The self-run version is
+first person, and the delegated one names the interviewer, their role, and makes them the
+point of contact for that conversation.
+
+### Recommended: add a question to the Bookings form
+
+Microsoft Bookings lets you attach a custom question to the booking form. Adding
+*"Which project would you like to talk about? Link if you have one."* costs nothing per
+candidate and turns eight minutes of finding out what they want to discuss into sixty
+seconds of pre-reading. This has to be set up in Bookings itself — the extension only
+inserts the link.
+
+### If you have edited a template, updated copy will not overwrite it
+
+Stored settings win over shipped defaults for anything you have actually changed. After
+pulling a change to the shipped copy, press **Reset to default** on that template in
+Settings to take it. Templates you have not edited are upgraded automatically.
 
 ### How the writing works
 

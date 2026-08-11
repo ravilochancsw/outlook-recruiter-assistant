@@ -370,7 +370,7 @@ test('an unreviewed placeholder is replaced by confirmed copy', () => {
       },
     },
   });
-  assert.match(merged.templates['shortlist-abhi'].bodyHtml, /technical screening with/);
+  assert.match(merged.templates['shortlist-abhi'].bodyHtml, /technical screening over Microsoft Teams with/);
   assert.equal(merged.templates['shortlist-abhi'].isPlaceholder, false);
 });
 

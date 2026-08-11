@@ -148,25 +148,80 @@ test('a template marked as a placeholder still warns', () => {
 
 test('the self-run screening is written in the first person', () => {
   const out = render('shortlist-ravilochan');
-  assert.match(out.bodyText, /technical screening with me over Microsoft Teams/);
   assert.match(out.bodyText, /I’ve reviewed your application/);
+  assert.match(out.bodyText, /I’d like to spend the time on what you’ve actually built/);
+  assert.ok(!/with Abhi/.test(out.bodyText));
 });
 
 test('both screening templates set the expectation of technical depth', () => {
   for (const id of SHORTLIST_IDS) {
     const out = render(id);
     assert.match(out.bodyText, /Rather than going through your resume line by line/);
-    assert.match(out.bodyText, /no coding exercise or written assessment/);
-    assert.match(out.bodyText, /talk about in real depth/);
-    assert.match(out.bodyText, /one hour before the start time/);
+    assert.match(out.bodyText, /20-minute technical screening over Microsoft Teams/);
+    assert.match(out.bodyText, /no coding exercise/);
+    assert.match(out.bodyText, /Pick one or two projects you know well/);
+    assert.match(out.bodyText, /one hour before they start/);
+  }
+});
+
+test('the screening asks the three things a candidate cannot rehearse', () => {
+  for (const id of SHORTLIST_IDS) {
+    const out = render(id);
+    assert.match(out.bodyText, /the part you worked on yourself/);
+    assert.match(out.bodyText, /why you built it that way, and what you considered instead/);
+    assert.match(out.bodyText, /what you would do differently now/);
+  }
+});
+
+test('the screening reveals nothing about later rounds', () => {
+  // Decided deliberately: what comes next is disclosed only if the candidate
+  // progresses, or answered live if they ask on the call.
+  for (const id of SHORTLIST_IDS) {
+    const out = render(id);
+    assert.ok(
+      !/next step|next round|further round|longer (session|conversation|technical)|founder|final round|second (round|conversation)/i.test(
+        out.bodyText,
+      ),
+      `${id} leaks the rest of the process`,
+    );
+  }
+});
+
+test('the screening carries no HR filler and no seniority signalling', () => {
+  for (const id of SHORTLIST_IDS) {
+    const out = render(id);
+    assert.ok(!/drew you to|why you.{0,15}interested|attracted you/i.test(out.bodyText), 'HR filler');
+    assert.ok(
+      !/busy|limited time|my time|briefly as possible/i.test(out.bodyText),
+      'seniority signalling makes candidates defensive and costs signal',
+    );
+  }
+});
+
+test('the subject stays the conventional screening wording', () => {
+  for (const id of SHORTLIST_IDS) {
+    assert.equal(render(id).subject, 'Technical Screening – AI Full Stack Software Engineer');
   }
 });
 
 test('the delegated screening names the interviewer, their role, and the contact', () => {
   const out = render('shortlist-abhi');
   assert.match(out.bodyText, /with Abhi, Software Engineer on our engineering team/);
-  assert.match(out.bodyText, /Abhi will be your point of contact/);
+  assert.match(out.bodyText, /Abhi will be your point of contact for this conversation/);
+  // Still sent from the account holder.
   assert.match(out.bodyText, /Best regards,\nRavilochan\nHead of Engineering/);
+});
+
+test('both screening versions run the same agenda', () => {
+  const [self, delegated] = SHORTLIST_IDS.map((id) => render(id).bodyText);
+  for (const shared of [
+    'Rather than going through your resume line by line',
+    'the part you worked on yourself',
+    'no coding exercise',
+    'one hour before they start',
+  ]) {
+    assert.ok(self.includes(shared) && delegated.includes(shared), `diverged on: ${shared}`);
+  }
 });
 
 test('{{INTERVIEWER_TITLE}} blocks rendering when unset on a template that uses it', () => {
@@ -175,11 +230,11 @@ test('{{INTERVIEWER_TITLE}} blocks rendering when unset on a template that uses 
   assert.match(out.errors.join(' '), /\{\{INTERVIEWER_TITLE\}\} has no value configured/);
 });
 
-test('the screening topics render as a real list', () => {
+test('the screening topics render as a real list of three', () => {
   for (const id of SHORTLIST_IDS) {
     const out = render(id);
     assert.match(out.bodyHtml, /<ul>/);
-    assert.equal((out.bodyHtml.match(/<li>/g) ?? []).length, 4);
+    assert.equal((out.bodyHtml.match(/<li>/g) ?? []).length, 3);
   }
 });
 

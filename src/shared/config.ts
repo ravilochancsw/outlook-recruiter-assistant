@@ -119,47 +119,76 @@ const REJECT_IN_PROCESS_BODY = [
 ].join('\n');
 
 /**
- * Screening run by the account holder. First person, and framed so the 20 minutes
- * goes on technical substance rather than a resume walkthrough — that framing is
- * the whole point of the round.
+ * Shared body of the first-round screening.
+ *
+ * Deliberate omissions, each one a decision:
+ *
+ * - **No mention of later rounds.** What comes next is disclosed if the candidate
+ *   progresses, or answered live if they ask. Naming it here invites questions
+ *   that do not belong in a 20-minute screen.
+ * - **No "why do you want to work here".** The email promises not to walk the
+ *   resume, and that question produces the most rehearsed answer in interviewing.
+ *   It is also not part of the 20 minutes.
+ * - **No seniority signalling.** A candidate told the interviewer is busy performs
+ *   below their real level, which costs signal in exactly the time being
+ *   protected. Brevity and precision carry the weight instead.
+ *
+ * The three bullets are the whole point: they are the things a candidate cannot
+ * rehearse from a job description, and they are what the round actually probes.
  */
+const SCREENING_TOPICS = `<ul>
+<li>what you built, and the part you worked on yourself</li>
+<li>why you built it that way, and what you considered instead</li>
+<li>what you would do differently now</li>
+</ul>`;
+
+const SCREENING_PREP =
+  '<p>There’s no coding exercise and nothing to prepare beyond that.</p>';
+
+const SCREENING_BOOKING = [
+  '<p>Please use the link below to choose a time that suits you. Slots can be booked up to one hour before they start.</p>',
+  '<p>{{BOOKING_URL}}</p>',
+].join('\n');
+
+const SCREENING_CLOSE = '<p>Looking forward to hearing how you’ve been building things.</p>';
+
+/** Run by the account holder, so first person throughout. */
 const SHORTLIST_SELF_BODY = [
   '<p>Thank you for your interest in the {{JOB_TITLE}} position at {{COMPANY}}.</p>',
   GAP,
-  '<p>I’ve reviewed your application and would like to move to the next step: a 20-minute technical screening with me over Microsoft Teams.</p>',
+  '<p>I’ve reviewed your application and would like to set up a 20-minute technical screening over Microsoft Teams.</p>',
   GAP,
-  '<p>Rather than going through your resume line by line, I’d like to spend the time on the technical work you’ve actually done:</p>',
-  '<ul>\n<li>projects you’ve built, and the decisions you made along the way</li>\n<li>your programming and engineering experience</li>\n<li>your work with AI and full-stack development</li>\n<li>what you want to be working on next, and what drew you to {{COMPANY}}</li>\n</ul>',
+  '<p>Rather than going through your resume line by line, I’d like to spend the time on what you’ve actually built. Pick one or two projects you know well and be ready to go into detail on:</p>',
+  SCREENING_TOPICS,
   GAP,
-  '<p>There’s no coding exercise or written assessment. The only thing worth doing beforehand is picking one or two projects you can talk about in real depth.</p>',
+  SCREENING_PREP,
   GAP,
-  '<p>Please use the link below to choose a time:</p>\n<p>{{BOOKING_URL}}</p>',
+  SCREENING_BOOKING,
   GAP,
-  '<p>Slots can be booked up to one hour before the start time.</p>',
-  GAP,
-  '<p>Looking forward to hearing how you’ve been building things.</p>',
+  SCREENING_CLOSE,
   SIGNOFF,
 ].join('\n');
 
 /**
- * Screening delegated to another engineer. The mail still comes from the account
- * holder, so the body names the interviewer and hands over the point of contact.
+ * Same round, same agenda, conducted by another engineer. The mail still comes
+ * from the account holder, so only the interviewer and the point of contact
+ * change.
  */
 const SHORTLIST_DELEGATED_BODY = [
   '<p>Thank you for your interest in the {{JOB_TITLE}} position at {{COMPANY}}.</p>',
   GAP,
-  '<p>We’ve reviewed your application and would like to move you forward to a 20-minute technical screening with {{INTERVIEWER}}, {{INTERVIEWER_TITLE}} on our engineering team, over Microsoft Teams.</p>',
+  '<p>We’ve reviewed your application and would like to set up a 20-minute technical screening over Microsoft Teams with {{INTERVIEWER}}, {{INTERVIEWER_TITLE}} on our engineering team.</p>',
   GAP,
-  '<p>Rather than going through your resume line by line, the conversation will focus on the technical work you’ve actually done:</p>',
-  '<ul>\n<li>projects you’ve built, and the decisions you made along the way</li>\n<li>your programming and engineering experience</li>\n<li>your work with AI and full-stack development</li>\n<li>what you want to be working on next, and what drew you to {{COMPANY}}</li>\n</ul>',
+  '<p>Rather than going through your resume line by line, the conversation will focus on what you’ve actually built. Pick one or two projects you know well and be ready to go into detail on:</p>',
+  SCREENING_TOPICS,
   GAP,
-  '<p>There’s no coding exercise or written assessment. The only thing worth doing beforehand is picking one or two projects you can talk about in real depth.</p>',
+  SCREENING_PREP,
   GAP,
-  '<p>Please use the link below to choose a time:</p>\n<p>{{BOOKING_URL}}</p>',
+  SCREENING_BOOKING,
   GAP,
-  '<p>Slots can be booked up to one hour before the start time. {{INTERVIEWER}} will be your point of contact for this stage.</p>',
+  '<p>{{INTERVIEWER}} will be your point of contact for this conversation.</p>',
   GAP,
-  '<p>Looking forward to hearing how you’ve been building things.</p>',
+  SCREENING_CLOSE,
   SIGNOFF,
 ].join('\n');
 
