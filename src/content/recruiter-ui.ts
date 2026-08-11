@@ -40,7 +40,7 @@ header button:hover { background: rgba(255,255,255,.32); }
 button.act { text-align: left; padding: 9px 11px; border-radius: 5px; cursor: pointer;
   border: 1px solid #c8c6c4; background: #fff; font: inherit; }
 button.act:hover { background: #f3f2f1; }
-button.act { position: relative; padding-right: 34px; }
+button.act { position: relative; padding-right: 46px; }
 button.act .lab { font-weight: 600; display: block; }
 button.act .key { position: absolute; top: 8px; right: 8px; font-size: 10.5px;
   font-family: ui-monospace, Consolas, monospace; color: #605e5c;
@@ -307,7 +307,7 @@ function render(...extras: HTMLElement[]): void {
       state.settings,
     );
     const index = ACTION_ORDER.indexOf(id) + 1;
-    const key = el('span', { className: 'key', textContent: `⌥${index}` });
+    const key = el('span', { className: 'key', textContent: `⌘⌃${index}` });
     button.append(key);
     button.append(el('span', { className: 'lab', textContent: template.label }));
     button.append(el('span', { className: 'sub', textContent: preview.subject || template.subject }));
@@ -316,29 +316,42 @@ function render(...extras: HTMLElement[]): void {
   }
   body.append(actions);
   body.append(
-    el('div', { className: 'hint-row', textContent: 'Option+1–4 to apply · ⌘+Enter in Outlook to send' }),
+    el('div', {
+      className: 'hint-row',
+      textContent: '⌘⌃1–4 to apply · ⌘+Enter in Outlook to send',
+    }),
   );
 
   for (const extra of extras) body.append(extra);
 }
 
 /**
- * Alt/Option + 1..4 applies the corresponding action.
+ * Cmd+Ctrl+1..4 (or Ctrl+Shift+1..4) applies the corresponding action.
  *
- * A modifier is mandatory, not a style choice: the panel is showing while the
- * caret sits in the compose body, so a bare digit would fire a template at a real
- * candidate the moment it was typed into an email. Cmd/Ctrl+digit is out too —
- * Chrome uses it to switch tabs.
+ * The combination is heavily constrained, and every alternative is ruled out by
+ * something concrete:
+ *
+ * - a **bare digit** would fire a template at a real candidate the moment it was
+ *   typed into the compose body, which is where the caret is while the panel shows;
+ * - **Cmd+digit** never reaches the page — Chrome reserves it for tab switching;
+ * - **Cmd+Shift+3/4/5** are macOS screenshot shortcuts;
+ * - **Option+digit** collides with third-party key remappers, and on macOS it also
+ *   produces a symbol rather than a digit.
+ *
+ * Cmd+Ctrl+digit is unclaimed by both macOS and Chrome. Ctrl+Shift+digit is
+ * accepted as the equivalent on a keyboard without a Cmd key.
  *
  * The default is suppressed so the keystroke never reaches Outlook's editor.
  */
 function onShortcut(event: KeyboardEvent): void {
   if (!state || !root) return;
-  if (!event.altKey || event.metaKey || event.ctrlKey) return;
+  const comboHeld =
+    (event.metaKey && event.ctrlKey) || (event.ctrlKey && event.shiftKey && !event.metaKey);
+  if (!comboHeld || event.altKey) return;
   // Only while the action list is actually on screen.
   if (state.busy || state.verdictOnly || pendingConfirm || !state.recipient || !state.surface) return;
 
-  // event.key is the alt-modified character on macOS (⌥1 gives ¡), so use code.
+  // Match the physical key: a modified event.key can be a symbol rather than a digit.
   const match = /^(?:Digit|Numpad)([1-9])$/.exec(event.code);
   const index = match?.[1] ? Number(match[1]) - 1 : -1;
   const action = ACTION_ORDER[index];
