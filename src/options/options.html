@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Recruiter Assistant — Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <span class="mark">RA</span>
+          <div>
+            <h1>Recruiter Assistant</h1>
+            <p class="sub">Outlook Web · v<span id="version">0.1.0</span></p>
+          </div>
+        </div>
+        <p id="status" class="saved" role="status" aria-live="polite"></p>
+      </div>
+    </header>
+
+    <main>
+      <nav class="toc" aria-label="Sections">
+        <a href="#role">Role &amp; sender</a>
+        <a href="#templates">Templates</a>
+        <a href="#greeting">Greeting</a>
+        <a href="#cleanup">Cleanup</a>
+        <a href="#advanced">Advanced</a>
+      </nav>
+
+      <div class="sections">
+        <section id="role" class="card">
+          <div class="card-head">
+            <h2>Role &amp; sender</h2>
+            <p>Filled into every template. Changes apply to the next email you prepare.</p>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <label for="jobTitle">Job title</label>
+              <div class="control">
+                <input type="text" id="jobTitle" />
+                <p class="help"><code>{{JOB_TITLE}}</code></p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="companyName">Company</label>
+              <div class="control">
+                <input type="text" id="companyName" />
+                <p class="help"><code>{{COMPANY}}</code></p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="senderName">Your name</label>
+              <div class="control">
+                <input type="text" id="senderName" />
+                <p class="help"><code>{{SENDER_NAME}}</code></p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="senderTitle">Your title</label>
+              <div class="control">
+                <input type="text" id="senderTitle" />
+                <p class="help"><code>{{SENDER_TITLE}}</code></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="templates" class="card">
+          <div class="card-head">
+            <h2>Templates</h2>
+            <p>
+              Four actions appear in the panel, in this order. Bodies are HTML:
+              <code>&lt;p&gt;</code> for a paragraph, <code>&lt;p&gt;&amp;nbsp;&lt;/p&gt;</code> for a
+              blank line, <code>&lt;strong&gt;</code> for bold, <code>&lt;br /&gt;</code> for a single
+              line break.
+            </p>
+            <details class="vars">
+              <summary>Available variables</summary>
+              <ul>
+                <li><code>{{JOB_TITLE}}</code> — job title above</li>
+                <li><code>{{COMPANY}}</code> — company above</li>
+                <li><code>{{SENDER_NAME}}</code> / <code>{{SENDER_TITLE}}</code> — your sign-off</li>
+                <li><code>{{CANDIDATE_EMAIL}}</code> — the recipient's address</li>
+                <li><code>{{CANDIDATE_NAME}}</code> — only when Outlook supplies a display name</li>
+                <li><code>{{INTERVIEWER}}</code> — the interviewer named on a screening template</li>
+                <li><code>{{BOOKING_URL}}</code> — that template's Bookings link, as a clickable link</li>
+                <li><code>{{GREETING}}</code> — see Greeting below</li>
+              </ul>
+              <p class="help">
+                An unresolved variable blocks the whole action rather than sending a literal
+                <code>{{…}}</code> to a candidate.
+              </p>
+            </details>
+          </div>
+          <div class="card-body" id="templates-list"></div>
+        </section>
+
+        <section id="greeting" class="card">
+          <div class="card-head">
+            <h2>Greeting</h2>
+            <p>
+              An address opened from a resume PDF carries no display name, so a greeting usually
+              cannot be personalised. Your templates open without one, which is why this is off.
+            </p>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <label for="greetingMode">Greeting line</label>
+              <div class="control">
+                <select id="greetingMode">
+                  <option value="none">None — matches your templates</option>
+                  <option value="name-or-fallback">Use the name when known, else a fallback</option>
+                </select>
+                <p class="help">
+                  Only affects templates containing <code>{{GREETING}}</code>. A name is never
+                  guessed from an email address.
+                </p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="greetingFallback">Fallback word</label>
+              <div class="control">
+                <input type="text" id="greetingFallback" />
+                <p class="help">Used as “Hi <em>there</em>,” when no name is available.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="cleanup" class="card">
+          <div class="card-head">
+            <h2>Cleanup of the original application email</h2>
+            <p>
+              After you press Send in Outlook, the extension can delete the LinkedIn application
+              email it came from. It only ever targets the exact message that was open in the tab
+              the compose window was opened from, and only when Send was actually clicked.
+            </p>
+          </div>
+          <div class="card-body">
+            <label class="toggle" for="attemptSourceDeletion">
+              <input type="checkbox" id="attemptSourceDeletion" />
+              <span>
+                <strong>Offer to delete the original after a send</strong>
+                <small>
+                  Off means nothing is ever deleted and no prompt appears.
+                </small>
+              </span>
+            </label>
+            <label class="toggle" for="requireDeletionConfirmation">
+              <input type="checkbox" id="requireDeletionConfirmation" />
+              <span>
+                <strong>Ask me first</strong>
+                <small>
+                  Recommended. Shows a Delete original / Keep prompt in the inbox tab. Turning this
+                  off deletes silently once every check passes.
+                </small>
+              </span>
+            </label>
+            <div class="note">
+              <strong>What it will never do:</strong> send an email, delete after a discarded or
+              unconfirmed send, or delete a message that is not from LinkedIn with an application
+              subject. If anything is uncertain it leaves the email alone and tells you why.
+            </div>
+          </div>
+        </section>
+
+        <section id="advanced" class="card">
+          <div class="card-head">
+            <h2>Advanced</h2>
+          </div>
+          <div class="card-body">
+            <label class="toggle" for="debugLogging">
+              <input type="checkbox" id="debugLogging" />
+              <span>
+                <strong>Debug logging</strong>
+                <small>
+                  Writes <code>[RecruiterAssistant]</code> detail to the page console. A single
+                  startup line is always logged regardless.
+                </small>
+              </span>
+            </label>
+            <div class="danger">
+              <div>
+                <strong>Reset all settings</strong>
+                <small>Restores every template, link and option to its shipped default.</small>
+              </div>
+              <button type="button" id="resetAll" class="btn danger-btn">Reset everything</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
