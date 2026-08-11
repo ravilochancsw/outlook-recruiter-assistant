@@ -52,6 +52,7 @@ service worker.</div>
   const store={};const listeners=[];window.__sent=[];window.__handlers=[];
   window.chrome={
     runtime:{
+      id:'harness-extension-id',
       getManifest:()=>({version:'0.1.0-harness'}),
       onMessage:{addListener:(cb)=>window.__handlers.push(cb)},
       sendMessage:async(m)=>{window.__sent.push(m);

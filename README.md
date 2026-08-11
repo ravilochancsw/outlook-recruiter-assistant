@@ -18,6 +18,7 @@ No backend, no APIs, no analytics. There is not a single network call in the bui
 - [Safety rules](#safety-rules)
 - [When the cleanup prompt does not appear](#when-the-cleanup-prompt-does-not-appear)
 - [If nothing appears](#if-nothing-appears)
+- [Reloading the extension orphans open tabs](#reloading-the-extension-orphans-open-tabs)
 - [Architecture](#architecture)
 - [Development](#development)
 - [Scope](#scope)
@@ -34,12 +35,12 @@ Your workflow is unchanged. The extension joins at step 5.
 3. Click the candidate's address inside the PDF.
 4. Outlook opens a compose window with them already in the **To** field.
 5. **The Recruiter Assistant panel appears, bottom-right, with four actions.**
-6. Click one, or press **⌘⌃1–⌘⌃4**. Subject and body are filled from your template.
+6. Click one, or press **Ctrl+1–Ctrl+4**. Subject and body are filled from your template.
 7. Read it, then **⌘+Enter** (or press Send).
 8. Back in your inbox tab, a prompt offers to delete the original LinkedIn email —
    **⌘+Enter** or **Enter** to delete, **Esc** to keep.
 
-Keyboard-only, that is: ⌘⌃3 → ⌘+Enter → switch tab → ⌘+Enter.
+Keyboard-only, that is: Ctrl+3 → ⌘+Enter → switch tab → ⌘+Enter.
 
 It never sends mail. It never decides anything about a candidate.
 
@@ -150,8 +151,7 @@ If the draft already has content you get *replace everything* / *insert at top* 
 
 | Key | Where | Does |
 | --- | --- | --- |
-| `⌘⌃1` … `⌘⌃4` | compose tab, panel showing | applies that action, in panel order |
-| `Ctrl+Shift+1` … `4` | same | equivalent, for a keyboard with no Cmd key |
+| `Ctrl+1` … `Ctrl+4` | compose tab, panel showing | applies that action, in panel order |
 | `⌘/Ctrl+Enter` | compose tab | Outlook's own send — the extension only observes it |
 | `Enter` | inbox tab, prompt showing | deletes (the Delete button is focused for you) |
 | `⌘/Ctrl+Enter` | inbox tab, prompt showing | deletes, from wherever focus happens to be |
@@ -167,9 +167,13 @@ concrete:
 - **⌥+digit** collides with third-party key remappers, and on macOS it produces a symbol
   rather than a digit.
 
-`⌘⌃`+digit is claimed by neither macOS nor Chrome. The handler matches the *physical* key
-(`event.code`), since a modified `event.key` can arrive as a symbol, and every shortcut
-calls `preventDefault` so the keystroke never reaches Outlook's editor.
+`Ctrl`+digit is what remains. The handler matches the *physical* key (`event.code`), since
+a modified `event.key` can arrive as a symbol, and every shortcut calls `preventDefault`
+so the keystroke never reaches Outlook's editor.
+
+If a particular digit does nothing, check **System Settings → Keyboard → Keyboard
+Shortcuts → Mission Control**: macOS can bind `Ctrl`+digit to switching Spaces, and the
+OS wins.
 
 The digit keys do nothing while a fill is in progress, while the overwrite confirmation
 is open, or after a send verdict. The prompt's keys are bound only while a prompt
@@ -301,6 +305,21 @@ load:
 ```
 
 If that line is absent, the extension is not injected and nothing else matters.
+
+## Reloading the extension orphans open tabs
+
+Reloading the extension in `chrome://extensions` severs `chrome.runtime` for every
+**already-open** tab. The old content script keeps running and the page looks completely
+normal, but the service worker can no longer send it anything — so a cleanup offer never
+arrives and no prompt appears. Nothing indicates why.
+
+That failure is indistinguishable from a bug in the prompt itself, and it cost a
+debugging cycle. The extension now detects it and shows a **"Recruiter Assistant needs
+this tab reloaded"** banner with a reload button, checked whenever the tab is brought
+forward — which for the inbox tab is exactly when the prompt is due.
+
+**So: after every `npm run build` + extension Reload, reload your Outlook tabs too.**
+Both of them.
 
 ## Architecture
 

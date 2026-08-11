@@ -40,7 +40,7 @@ header button:hover { background: rgba(255,255,255,.32); }
 button.act { text-align: left; padding: 9px 11px; border-radius: 5px; cursor: pointer;
   border: 1px solid #c8c6c4; background: #fff; font: inherit; }
 button.act:hover { background: #f3f2f1; }
-button.act { position: relative; padding-right: 46px; }
+button.act { position: relative; padding-right: 38px; }
 button.act .lab { font-weight: 600; display: block; }
 button.act .key { position: absolute; top: 8px; right: 8px; font-size: 10.5px;
   font-family: ui-monospace, Consolas, monospace; color: #605e5c;
@@ -307,7 +307,7 @@ function render(...extras: HTMLElement[]): void {
       state.settings,
     );
     const index = ACTION_ORDER.indexOf(id) + 1;
-    const key = el('span', { className: 'key', textContent: `⌘⌃${index}` });
+    const key = el('span', { className: 'key', textContent: `⌃${index}` });
     button.append(key);
     button.append(el('span', { className: 'lab', textContent: template.label }));
     button.append(el('span', { className: 'sub', textContent: preview.subject || template.subject }));
@@ -318,7 +318,7 @@ function render(...extras: HTMLElement[]): void {
   body.append(
     el('div', {
       className: 'hint-row',
-      textContent: '⌘⌃1–4 to apply · ⌘+Enter in Outlook to send',
+      textContent: 'Ctrl+1–4 to apply · ⌘+Enter in Outlook to send',
     }),
   );
 
@@ -326,7 +326,7 @@ function render(...extras: HTMLElement[]): void {
 }
 
 /**
- * Cmd+Ctrl+1..4 (or Ctrl+Shift+1..4) applies the corresponding action.
+ * Ctrl+1..4 applies the corresponding action.
  *
  * The combination is heavily constrained, and every alternative is ruled out by
  * something concrete:
@@ -338,16 +338,19 @@ function render(...extras: HTMLElement[]): void {
  * - **Option+digit** collides with third-party key remappers, and on macOS it also
  *   produces a symbol rather than a digit.
  *
- * Cmd+Ctrl+digit is unclaimed by both macOS and Chrome. Ctrl+Shift+digit is
- * accepted as the equivalent on a keyboard without a Cmd key.
+ * Ctrl+digit it is. Note that macOS may bind Ctrl+digit to Spaces switching in
+ * System Settings → Keyboard Shortcuts → Mission Control; if a digit does nothing,
+ * that is where it went.
  *
  * The default is suppressed so the keystroke never reaches Outlook's editor.
  */
 function onShortcut(event: KeyboardEvent): void {
   if (!state || !root) return;
-  const comboHeld =
-    (event.metaKey && event.ctrlKey) || (event.ctrlKey && event.shiftKey && !event.metaKey);
-  if (!comboHeld || event.altKey) return;
+  // Ctrl is the modifier, as requested. Cmd+digit is unusable — Chrome reserves it
+  // for tab switching and the page never receives the event — and Option is
+  // commonly claimed by key-remapping utilities. Ctrl+Ctrl-with-Cmd and
+  // Ctrl+Shift both pass, so the same digits work however they are reached.
+  if (!event.ctrlKey || event.altKey) return;
   // Only while the action list is actually on screen.
   if (state.busy || state.verdictOnly || pendingConfirm || !state.recipient || !state.surface) return;
 

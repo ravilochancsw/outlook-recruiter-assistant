@@ -102,6 +102,7 @@
         const listeners = [];
         window.chrome = {
           runtime: {
+            id: 'harness-extension-id',
             getManifest: () => ({ version: '0.1.0-harness' }),
             onMessage: { addListener: () => {} },
             openOptionsPage: () => {},

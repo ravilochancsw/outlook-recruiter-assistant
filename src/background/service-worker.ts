@@ -469,7 +469,7 @@ async function offerDeletion(
     await setState(workflowId, 'DELETE_UNSAFE');
     await recordDecision(
       'blocked',
-      'the inbox tab is no longer open, so there was nowhere to show the prompt',
+      'the inbox tab did not respond. If it is still open, it is running an old copy of the extension — reload that tab (this happens whenever the extension is reloaded)',
       workflow.composeTabId,
     );
   }

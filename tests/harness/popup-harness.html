@@ -57,7 +57,8 @@
 
       window.chrome = {
         runtime: {
-          getManifest: () => ({ version: '0.1.0-harness' }),
+          id: 'harness-extension-id',
+            getManifest: () => ({ version: '0.1.0-harness' }),
           openOptionsPage: () => console.log('openOptionsPage'),
           sendMessage: async (msg) => {
             if (msg.type === 'RA_LAST_DECISION') {
