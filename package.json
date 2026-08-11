@@ -1,0 +1,22 @@
+{
+  "name": "recruiter-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension that assists with LinkedIn candidate screening in Outlook Web. Phase 0: DOM diagnostics only.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "node tests/build-tests.mjs && node --test tests/*.test.mjs",
+    "clean": "rm -rf dist",
+    "harness": "node build.mjs && echo 'now run: python3 -m http.server 8731  then open http://localhost:8731/tests/harness/compose-harness.html (add ?stale=1) or /tests/harness/source-harness.html'",
+    "icons": "node scripts/make-icons.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.0.1",
+    "typescript": "^5.5.0"
+  }
+}
