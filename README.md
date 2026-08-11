@@ -34,10 +34,12 @@ Your workflow is unchanged. The extension joins at step 5.
 3. Click the candidate's address inside the PDF.
 4. Outlook opens a compose window with them already in the **To** field.
 5. **The Recruiter Assistant panel appears, bottom-right, with four actions.**
-6. Click one. Subject and body are filled from your template.
-7. Read it, then press Outlook's **Send**.
-8. Once the send is confirmed, a prompt in your inbox tab offers to delete the original
-   LinkedIn email.
+6. Click one, or press **⌥1–⌥4**. Subject and body are filled from your template.
+7. Read it, then **⌘+Enter** (or press Send).
+8. Back in your inbox tab, a prompt offers to delete the original LinkedIn email —
+   **⌘+Enter** or **Enter** to delete, **Esc** to keep.
+
+Keyboard-only, that is: ⌥3 → ⌘+Enter → switch tab → ⌘+Enter.
 
 It never sends mail. It never decides anything about a candidate.
 
@@ -143,6 +145,27 @@ a failure — the panel never claims success it has not confirmed.
 
 If the draft already has content you get *replace everything* / *insert at top* /
 *cancel* rather than silent clobbering.
+
+### Keyboard shortcuts
+
+| Key | Where | Does |
+| --- | --- | --- |
+| `⌥1` … `⌥4` | compose tab, panel showing | applies that action, in panel order |
+| `⌘/Ctrl+Enter` | compose tab | Outlook's own send — the extension only observes it |
+| `Enter` | inbox tab, prompt showing | deletes (the Delete button is focused for you) |
+| `⌘/Ctrl+Enter` | inbox tab, prompt showing | deletes, from wherever focus happens to be |
+| `Esc` | inbox tab, prompt showing | keeps the email |
+
+A modifier on the digits is mandatory, not a stylistic choice: the panel is showing
+while the caret is in the compose body, so a bare `1` would fire a template at a real
+candidate the moment it was typed into an email. `⌘`+digit was unavailable too — Chrome
+uses it to switch tabs. All shortcuts `preventDefault`, so the keystroke never reaches
+Outlook's editor.
+
+The digit keys do nothing while a fill is in progress, while the overwrite confirmation
+is open, or after a send verdict. The prompt's keys are bound only while a prompt
+offering a delete is on screen, so `Esc` and `⌘+Enter` mean nothing in Outlook at any
+other moment.
 
 ## Cleanup of the original email
 

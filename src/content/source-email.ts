@@ -397,9 +397,51 @@ button { flex: 1; padding: 7px; border-radius: 4px; border: 1px solid #c8c6c4; b
   font: inherit; font-size: 12.5px; cursor: pointer; }
 button.go { background: #c4314b; border-color: #c4314b; color: #fff; }
 button:disabled { opacity: .6; cursor: default; }
+button:focus, button:focus-visible { outline: 2px solid #0f6cbd; outline-offset: 1px; }
+.keys { margin-top: 9px; color: #605e5c; font-size: 11px; }
+.keys kbd { font-family: ui-monospace, Consolas, monospace; border: 1px solid #d1d1d1;
+  border-radius: 3px; padding: 0 4px; background: #faf9f8; }
 `;
 
 let host: HTMLElement | null = null;
+/** Bound only while a card with a confirmable delete is on screen. */
+let cardKeyHandler: ((event: KeyboardEvent) => void) | null = null;
+
+function releaseCardKeys(): void {
+  if (cardKeyHandler) {
+    document.removeEventListener('keydown', cardKeyHandler, true);
+    cardKeyHandler = null;
+  }
+}
+
+/**
+ * Keyboard confirmation for the cleanup prompt.
+ *
+ * The Delete button is focused when the card appears, so plain Enter activates it
+ * natively. Cmd/Ctrl+Enter also works from anywhere in the tab — the same gesture
+ * that sent the email, so it is one piece of muscle memory rather than two — and
+ * Escape keeps the message.
+ *
+ * Bound only while a card offering a delete is on screen, so these keys never do
+ * anything in Outlook at any other moment.
+ */
+function bindCardKeys(onConfirm: () => void, onDismiss: () => void): void {
+  releaseCardKeys();
+  cardKeyHandler = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      onDismiss();
+      return;
+    }
+    if ((event.metaKey || event.ctrlKey) && (event.key === 'Enter' || event.code === 'Enter')) {
+      event.preventDefault();
+      event.stopPropagation();
+      onConfirm();
+    }
+  };
+  document.addEventListener('keydown', cardKeyHandler, true);
+}
 
 function mountCard(): ShadowRoot {
   host?.remove();
@@ -414,6 +456,7 @@ function mountCard(): ShadowRoot {
 }
 
 function dismissCard(): void {
+  releaseCardKeys();
   host?.remove();
   host = null;
 }
@@ -512,17 +555,60 @@ export function handleDeletionOffer(offer: OfferDeletionMsg): void {
   del.textContent = 'Delete original';
   const keep = document.createElement('button');
   keep.textContent = 'Keep';
-  del.addEventListener('click', () => {
+
+  let settled = false;
+  const confirm = () => {
+    if (settled) return;
+    settled = true;
     del.disabled = true;
     keep.disabled = true;
+    releaseCardKeys();
     void performDelete(offer);
-  });
-  keep.addEventListener('click', () => {
+  };
+  const decline = () => {
+    if (settled) return;
+    settled = true;
     sendToBackground({ type: 'RA_DELETE_DECLINED', workflowId: offer.workflowId });
     dismissCard();
-  });
+  };
+
+  del.addEventListener('click', confirm);
+  keep.addEventListener('click', decline);
   row.append(del, keep);
   inner.append(row);
+
+  const keys = document.createElement('div');
+  keys.className = 'keys';
+  const kbd = (label: string) => {
+    const el = document.createElement('kbd');
+    el.textContent = label;
+    return el;
+  };
+  keys.append(kbd('Enter'), document.createTextNode(' or '), kbd('⌘/Ctrl+Enter'));
+  keys.append(document.createTextNode(' to delete · '), kbd('Esc'), document.createTextNode(' to keep'));
+  inner.append(keys);
+
+  bindCardKeys(confirm, decline);
+
+  /*
+   * Focus the delete button so Enter alone works.
+   *
+   * The card is created while this tab is in the background — the user is still in
+   * the compose tab — so focusing once is not enough. Focus has to be reclaimed
+   * when they switch back, which is the moment they will actually press a key.
+   */
+  const claimFocus = () => {
+    if (settled || !host?.isConnected) return;
+    del.focus({ preventScroll: true });
+  };
+  claimFocus();
+  window.setTimeout(claimFocus, 150);
+  window.addEventListener('focus', claimFocus);
+  document.addEventListener('visibilitychange', function onVisible() {
+    if (document.visibilityState !== 'visible') return;
+    document.removeEventListener('visibilitychange', onVisible);
+    window.setTimeout(claimFocus, 50);
+  });
 }
 
 export function hasSourceMessageOpen(): boolean {

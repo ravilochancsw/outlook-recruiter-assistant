@@ -40,7 +40,12 @@ header button:hover { background: rgba(255,255,255,.32); }
 button.act { text-align: left; padding: 9px 11px; border-radius: 5px; cursor: pointer;
   border: 1px solid #c8c6c4; background: #fff; font: inherit; }
 button.act:hover { background: #f3f2f1; }
+button.act { position: relative; padding-right: 34px; }
 button.act .lab { font-weight: 600; display: block; }
+button.act .key { position: absolute; top: 8px; right: 8px; font-size: 10.5px;
+  font-family: ui-monospace, Consolas, monospace; color: #605e5c;
+  border: 1px solid #d1d1d1; border-radius: 3px; padding: 0 4px; line-height: 15px; }
+.hint-row { margin-top: 8px; color: #605e5c; font-size: 11px; }
 button.act .sub { color: #605e5c; font-size: 11.5px; }
 button.act.neg { border-left: 4px solid #c4314b; }
 button.act.pos { border-left: 4px solid #107c10; }
@@ -301,14 +306,47 @@ function render(...extras: HTMLElement[]): void {
       { email: state.recipient.email, name: state.recipient.name },
       state.settings,
     );
+    const index = ACTION_ORDER.indexOf(id) + 1;
+    const key = el('span', { className: 'key', textContent: `⌥${index}` });
+    button.append(key);
     button.append(el('span', { className: 'lab', textContent: template.label }));
     button.append(el('span', { className: 'sub', textContent: preview.subject || template.subject }));
     button.addEventListener('click', () => requestApply(id));
     actions.append(button);
   }
   body.append(actions);
+  body.append(
+    el('div', { className: 'hint-row', textContent: 'Option+1–4 to apply · ⌘+Enter in Outlook to send' }),
+  );
 
   for (const extra of extras) body.append(extra);
+}
+
+/**
+ * Alt/Option + 1..4 applies the corresponding action.
+ *
+ * A modifier is mandatory, not a style choice: the panel is showing while the
+ * caret sits in the compose body, so a bare digit would fire a template at a real
+ * candidate the moment it was typed into an email. Cmd/Ctrl+digit is out too —
+ * Chrome uses it to switch tabs.
+ *
+ * The default is suppressed so the keystroke never reaches Outlook's editor.
+ */
+function onShortcut(event: KeyboardEvent): void {
+  if (!state || !root) return;
+  if (!event.altKey || event.metaKey || event.ctrlKey) return;
+  // Only while the action list is actually on screen.
+  if (state.busy || state.verdictOnly || pendingConfirm || !state.recipient || !state.surface) return;
+
+  // event.key is the alt-modified character on macOS (⌥1 gives ¡), so use code.
+  const match = /^(?:Digit|Numpad)([1-9])$/.exec(event.code);
+  const index = match?.[1] ? Number(match[1]) - 1 : -1;
+  const action = ACTION_ORDER[index];
+  if (!action) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  requestApply(action);
 }
 
 function makeDraggable(wrap: HTMLElement, handle: HTMLElement): void {
@@ -358,9 +396,11 @@ function mount(): void {
   wrap.append(header, el('div', { className: 'body' }));
   root.append(wrap);
   makeDraggable(wrap, header);
+  document.addEventListener('keydown', onShortcut, true);
 }
 
 function unmount(): void {
+  document.removeEventListener('keydown', onShortcut, true);
   host?.remove();
   host = null;
   root = null;
