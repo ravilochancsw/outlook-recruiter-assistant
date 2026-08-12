@@ -69,12 +69,16 @@ not in the manifest — add it to `src/manifest.json` (both `host_permissions` a
 
 ## The four actions
 
-| Action | Subject | Routes to |
-| --- | --- | --- |
-| **Reject** | `Update on Your Application` | — |
-| **Reject (in process)** | `Update in Interview Process` | — |
-| **Shortlist → Ravilochan** | `Technical Screening – {{JOB_TITLE}}` | Ravilochan's Bookings link |
-| **Shortlist → Abhi** | `Technical Screening – {{JOB_TITLE}}` | Abhi's Bookings link |
+| # | Action | Subject | Books |
+| --- | --- | --- | --- |
+| `Ctrl+1` | **Reject** | `Update on Your Application` | — |
+| `Ctrl+2` | **Reject (in process)** | `Update in Interview Process` | — |
+| `Ctrl+3` | **Shortlist → Ravilochan** | `Technical Screening – {{JOB_TITLE}}` | round one, 20 min, your calendar |
+| `Ctrl+4` | **Shortlist → Abhi** | `Technical Screening – {{JOB_TITLE}}` | round one, 20 min, Abhi's calendar |
+| `Ctrl+5` | **Interview (1h)** | `Technical Interview – {{JOB_TITLE}}` | round two, one hour, your calendar |
+
+New actions are **appended**, never inserted: the shortcuts are positional, so
+slotting one in beside the screenings would silently remap the others.
 
 All four carry confirmed copy. The panel appears only when a compose surface is found
 **and** the To field holds exactly one recipient — with two, there is no way to be
@@ -113,6 +117,20 @@ That makes the copy a set of deliberate decisions, each enforced by a test:
 Both versions run the same agenda; only the interviewer changes. The self-run version is
 first person, and the delegated one names the interviewer, their role, and makes them the
 point of contact for that conversation.
+
+### Round two is a different email, deliberately
+
+The screening exists to answer *would I spend an hour on this person?* Round two is
+that hour, and it is where the decision gets made — so the copy inverts two things:
+
+- **It does not promise "no coding exercise".** This round asks real technical
+  questions across design and implementation. A promise the interviewer intends to
+  break would mislead the candidate and skew the conversation.
+- **The prep instruction is the opposite.** The screening asks only that they pick a
+  project. Round two asks them to be ready to open one up end to end, *including the
+  parts that gave them trouble*.
+
+It still says nothing about what follows, for the same reason the screening does not.
 
 ### Recommended: add a question to the Bookings form
 

@@ -81,10 +81,9 @@ function installListeners(): void {
       }
 
       case 'RA_OFFER_DELETION': {
-        // Only the top frame speaks for the tab. A sub-frame would build the card
-        // inside an iframe where it cannot be seen, and would still answer the
-        // message — so the offer could be consumed by an invisible copy.
-        if (!isTopFrame()) return false;
+        // Deliberately NOT restricted to the top frame. That guard was added on a
+        // theory and is a candidate cause of the prompt not appearing; letting every
+        // frame handle the offer is what the last known-good build did.
         handleDeletionOffer(message as OfferDeletionMsg);
         respond({ ok: true });
         return true;

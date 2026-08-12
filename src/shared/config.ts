@@ -16,7 +16,8 @@ export type ActionId =
   | 'reject-direct'
   | 'reject-in-process'
   | 'shortlist-ravilochan'
-  | 'shortlist-abhi';
+  | 'shortlist-abhi'
+  | 'interview-ravilochan';
 
 /** Order in which the buttons appear in the recruiter panel. */
 export const ACTION_ORDER: ActionId[] = [
@@ -24,6 +25,9 @@ export const ACTION_ORDER: ActionId[] = [
   'reject-in-process',
   'shortlist-ravilochan',
   'shortlist-abhi',
+  // Appended rather than slotted in next to the screenings: the panel's Ctrl+N
+  // shortcuts are positional, so inserting here would silently remap them.
+  'interview-ravilochan',
 ];
 
 export interface EmailTemplate {
@@ -192,9 +196,46 @@ const SHORTLIST_DELEGATED_BODY = [
   SIGNOFF,
 ].join('\n');
 
+/**
+ * Round two: the hour where the decision actually gets made.
+ *
+ * Two things separate it from the screening copy. It does **not** promise "no
+ * coding exercise" — this round asks real technical questions, and a promise the
+ * interviewer intends to break would both mislead the candidate and skew the
+ * conversation. And the prep instruction is the opposite: for the screening the
+ * only ask is to pick a project; here the candidate is told to be ready to open
+ * one up end to end, including where it went wrong.
+ *
+ * It still says nothing about what follows, for the same reason the screening does
+ * not: what comes next is disclosed on progression, or answered live if asked.
+ */
+const INTERVIEW_BODY = [
+  '<p>Thank you for taking the time to speak with us.</p>',
+  GAP,
+  '<p>I’d like to move to a one-hour technical discussion over Microsoft Teams.</p>',
+  GAP,
+  '<p>This one goes deeper. Expect to spend the time on:</p>',
+  `<ul>
+<li>a walkthrough of something you’ve built, in as much depth as it goes</li>
+<li>how you would design and structure a system, and the trade-offs you would weigh</li>
+<li>implementation detail on the parts you know best</li>
+</ul>`,
+  GAP,
+  '<p>Worth doing beforehand: pick one project you can open up and talk through end to end, including the parts that gave you trouble.</p>',
+  GAP,
+  SCREENING_BOOKING,
+  GAP,
+  '<p>Looking forward to it.</p>',
+  SIGNOFF,
+].join('\n');
+
 /** Provided by the user. Meant to be sent to candidates. */
 const BOOKING_URL_RAVILOCHAN =
   'https://outlook.office.com/bookwithme/user/3f6501d8044d4995ab96268a52c7c6c2@cloudsecurityweb.com/meetingtype/UpQ1JGbg8EuR65lHA9HyMQ2?bookingcode=ee6042cc-478f-4adb-a449-816373a971a5&anonymous&ismsaljsauthenabled&ep=mlink';
+
+/** Round two — same calendar as the screening, a different meeting type. */
+const BOOKING_URL_INTERVIEW =
+  'https://outlook.office.com/bookwithme/user/3f6501d8044d4995ab96268a52c7c6c2@cloudsecurityweb.com/meetingtype/ps9cw8UA00mSWOwwwV6NZw2?bookingcode=5611fdad-2e9f-4547-a07a-9affe583b035&anonymous&ismsaljsauthenabled&ep=mlink';
 
 const BOOKING_URL_ABHI =
   'https://outlook.office.com/bookwithme/user/ccf48c139cdf40f9b9575ae93ed3ed3f@cloudsecurityweb.com/meetingtype/K6leUTtTw0q22SGhvAvGoA2?anonymous&ismsaljsauthenabled&ep=mcard';
@@ -253,6 +294,20 @@ export const DEFAULT_SETTINGS: Settings = {
       bookingUrl: BOOKING_URL_ABHI,
       interviewerName: 'Abhi',
       interviewerTitle: 'Software Engineer',
+      tone: 'positive',
+      isPlaceholder: false,
+    },
+    'interview-ravilochan': {
+      id: 'interview-ravilochan',
+      label: 'Interview (1h)',
+      description:
+        'Round two: one-hour deep technical discussion on Ravilochan’s calendar — design, implementation and a project walkthrough.',
+      subject: 'Technical Interview – {{JOB_TITLE}}',
+      bodyHtml: INTERVIEW_BODY,
+      requiresBookingUrl: true,
+      bookingUrl: BOOKING_URL_INTERVIEW,
+      interviewerName: 'Ravilochan',
+      interviewerTitle: 'Head of Engineering',
       tone: 'positive',
       isPlaceholder: false,
     },

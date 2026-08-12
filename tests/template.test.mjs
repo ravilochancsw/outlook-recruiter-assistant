@@ -23,6 +23,8 @@ function renderWith(id, templatePatch, patch = {}, candidate = CANDIDATE) {
 }
 
 const SHORTLIST_IDS = ['shortlist-ravilochan', 'shortlist-abhi'];
+/** Every action that books a calendar, screenings plus the round-two interview. */
+const BOOKING_IDS = [...SHORTLIST_IDS, 'interview-ravilochan'];
 
 /* ------------------------------------------------------------------ */
 /* the user's confirmed copy                                           */
@@ -107,9 +109,9 @@ test('clearing one shortlist link does not block the other', () => {
 });
 
 test('the real Bookings URLs survive validation byte-for-byte', () => {
-  // Both links carry valueless query params (&anonymous&ismsaljsauthenabled).
+  // Every link carries valueless query params (&anonymous&ismsaljsauthenabled).
   // If URL normalisation dropped or reordered them, booking would break.
-  for (const id of SHORTLIST_IDS) {
+  for (const id of BOOKING_IDS) {
     const original = DEFAULT_SETTINGS.templates[id].bookingUrl;
     const { url, error } = validateBookingUrl(original);
     assert.equal(error, undefined, `${id}: ${error}`);
@@ -117,10 +119,60 @@ test('the real Bookings URLs survive validation byte-for-byte', () => {
   }
 });
 
-test('the private booking-code link keeps its bookingcode parameter', () => {
-  const out = render('shortlist-ravilochan');
-  const href = out.bodyHtml.match(/href="([^"]+)"/)[1];
-  assert.match(href, /bookingcode=ee6042cc-478f-4adb-a449-816373a971a5/);
+test('every booking link is the latest one supplied, and they are all distinct', () => {
+  const link = (id) => render(id).bodyHtml.match(/href="([^"]+)"/)[1];
+
+  // Round one, run by the account holder.
+  assert.match(link('shortlist-ravilochan'), /meetingtype\/UpQ1JGbg8EuR65lHA9HyMQ2\?/);
+  assert.match(link('shortlist-ravilochan'), /bookingcode=ee6042cc-478f-4adb-a449-816373a971a5/);
+
+  // Round one, delegated.
+  assert.match(link('shortlist-abhi'), /user\/ccf48c139cdf40f9b9575ae93ed3ed3f@/);
+  assert.match(link('shortlist-abhi'), /meetingtype\/K6leUTtTw0q22SGhvAvGoA2\?/);
+
+  // Round two: same calendar as round one, a different meeting type.
+  assert.match(link('interview-ravilochan'), /user\/3f6501d8044d4995ab96268a52c7c6c2@/);
+  assert.match(link('interview-ravilochan'), /meetingtype\/ps9cw8UA00mSWOwwwV6NZw2\?/);
+  assert.match(link('interview-ravilochan'), /bookingcode=5611fdad-2e9f-4547-a07a-9affe583b035/);
+
+  const all = BOOKING_IDS.map(link);
+  assert.equal(new Set(all).size, all.length, 'two actions share a Bookings link');
+  // The superseded round-one code must be gone everywhere.
+  assert.ok(!all.some((u) => u.includes('a9a74792')), 'an old booking code is still shipped');
+});
+
+test('the round-two interview does not promise there is no coding exercise', () => {
+  // It asks real technical questions. Promising otherwise would mislead the
+  // candidate and skew the conversation.
+  const out = render('interview-ravilochan');
+  assert.ok(!/no coding|no technical (test|assessment)|nothing to prepare/i.test(out.bodyText));
+});
+
+test('the round-two interview sets up depth, design and a walkthrough', () => {
+  const out = render('interview-ravilochan');
+  assert.equal(out.ok, true, out.errors.join('; '));
+  assert.equal(out.subject, 'Technical Interview – AI Full Stack Software Engineer');
+  assert.match(out.bodyText, /one-hour technical discussion over Microsoft Teams/);
+  assert.match(out.bodyText, /a walkthrough of something you’ve built/);
+  assert.match(out.bodyText, /how you would design and structure a system/);
+  assert.match(out.bodyText, /talk through end to end, including the parts that gave you trouble/);
+  assert.equal((out.bodyHtml.match(/<li>/g) ?? []).length, 3);
+});
+
+test('the round-two interview reveals nothing about what follows it', () => {
+  const out = render('interview-ravilochan');
+  assert.ok(
+    !/founder|final round|next step|next round|last stage/i.test(out.bodyText),
+    'the interview email leaks the rest of the process',
+  );
+});
+
+test('the interview and the screening are clearly different emails', () => {
+  const screening = render('shortlist-ravilochan');
+  const interview = render('interview-ravilochan');
+  assert.notEqual(screening.subject, interview.subject);
+  assert.match(screening.bodyText, /20-minute/);
+  assert.match(interview.bodyText, /one-hour/);
 });
 
 test('ampersands are entity-escaped in href but raw in the text rendering', () => {
@@ -343,12 +395,13 @@ test('a name is never derived from the email address', () => {
 /* misc                                                                */
 /* ------------------------------------------------------------------ */
 
-test('all four actions exist and render cleanly out of the box', () => {
+test('all five actions exist and render cleanly out of the box', () => {
   assert.deepEqual(ACTION_ORDER, [
     'reject-direct',
     'reject-in-process',
     'shortlist-ravilochan',
     'shortlist-abhi',
+    'interview-ravilochan',
   ]);
   for (const id of ACTION_ORDER) {
     const out = render(id);

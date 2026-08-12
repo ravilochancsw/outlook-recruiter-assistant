@@ -433,7 +433,7 @@ test('verification also ignores the resume preview', () => {
 /* keyboard shortcuts                                                  */
 /* ------------------------------------------------------------------ */
 
-test('every action has a distinct Option+digit slot, in panel order', () => {
+test('every action has a distinct Ctrl+digit slot, in panel order', () => {
   // The panel labels buttons ⌥1..⌥4 from ACTION_ORDER, so the order is the
   // contract: reordering ACTION_ORDER silently remaps the user's shortcuts.
   const { ACTION_ORDER } = libSync;
@@ -442,6 +442,7 @@ test('every action has a distinct Option+digit slot, in panel order', () => {
     'reject-in-process',
     'shortlist-ravilochan',
     'shortlist-abhi',
+    'interview-ravilochan',
   ]);
   assert.equal(new Set(ACTION_ORDER).size, ACTION_ORDER.length);
   assert.ok(ACTION_ORDER.length <= 9, 'more than nine actions would exceed the digit keys');

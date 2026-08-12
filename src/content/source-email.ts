@@ -397,7 +397,6 @@ button { flex: 1; padding: 7px; border-radius: 4px; border: 1px solid #c8c6c4; b
   font: inherit; font-size: 12.5px; cursor: pointer; }
 button.go { background: #c4314b; border-color: #c4314b; color: #fff; }
 button:disabled { opacity: .6; cursor: default; }
-button:focus, button:focus-visible { outline: 2px solid #0f6cbd; outline-offset: 1px; }
 .keys { margin-top: 9px; color: #605e5c; font-size: 11px; }
 .keys kbd { font-family: ui-monospace, Consolas, monospace; border: 1px solid #d1d1d1;
   border-radius: 3px; padding: 0 4px; background: #faf9f8; }
@@ -425,15 +424,13 @@ function releaseCardKeys(): void {
  * Bound only while a card offering a delete is on screen, so these keys never do
  * anything in Outlook at any other moment.
  */
-function bindCardKeys(onConfirm: () => void, onDismiss: () => void): void {
+function bindCardKeys(onConfirm: () => void): void {
   releaseCardKeys();
   cardKeyHandler = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      onDismiss();
-      return;
-    }
+    // Only Cmd/Ctrl+Enter. Escape is deliberately NOT handled: intercepting it
+    // dismissed the prompt and swallowed the Escape that closes the resume preview
+    // open in this same tab, and it is the likeliest cause of the prompt appearing
+    // to vanish. Declining is a click on Keep.
     if ((event.metaKey || event.ctrlKey) && (event.key === 'Enter' || event.code === 'Enter')) {
       event.preventDefault();
       event.stopPropagation();
@@ -588,31 +585,11 @@ export function handleDeletionOffer(offer: OfferDeletionMsg): void {
     el.textContent = label;
     return el;
   };
-  keys.append(kbd('Enter'), document.createTextNode(' or '), kbd('⌘/Ctrl+Enter'));
-  keys.append(document.createTextNode(' to delete · '), kbd('Esc'), document.createTextNode(' to keep'));
+  keys.append(kbd('⌘/Ctrl+Enter'), document.createTextNode(' to delete'));
   inner.append(keys);
 
-  bindCardKeys(confirm, decline);
+  bindCardKeys(confirm);
 
-  /*
-   * Focus the delete button so Enter alone works.
-   *
-   * The card is created while this tab is in the background — the user is still in
-   * the compose tab — so focusing once is not enough. Focus has to be reclaimed
-   * when they switch back, which is the moment they will actually press a key.
-   */
-  const claimFocus = () => {
-    if (settled || !host?.isConnected) return;
-    del.focus({ preventScroll: true });
-  };
-  claimFocus();
-  window.setTimeout(claimFocus, 150);
-  window.addEventListener('focus', claimFocus);
-  document.addEventListener('visibilitychange', function onVisible() {
-    if (document.visibilityState !== 'visible') return;
-    document.removeEventListener('visibilitychange', onVisible);
-    window.setTimeout(claimFocus, 50);
-  });
 }
 
 export function hasSourceMessageOpen(): boolean {
