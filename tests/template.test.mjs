@@ -120,7 +120,7 @@ test('the real Bookings URLs survive validation byte-for-byte', () => {
 test('the private booking-code link keeps its bookingcode parameter', () => {
   const out = render('shortlist-ravilochan');
   const href = out.bodyHtml.match(/href="([^"]+)"/)[1];
-  assert.match(href, /bookingcode=a9a74792-b0ca-4fec-9922-dbc1cd2c49bd/);
+  assert.match(href, /bookingcode=ee6042cc-478f-4adb-a449-816373a971a5/);
 });
 
 test('ampersands are entity-escaped in href but raw in the text rendering', () => {

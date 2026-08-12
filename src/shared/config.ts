@@ -194,7 +194,7 @@ const SHORTLIST_DELEGATED_BODY = [
 
 /** Provided by the user. Meant to be sent to candidates. */
 const BOOKING_URL_RAVILOCHAN =
-  'https://outlook.office.com/bookwithme/user/3f6501d8044d4995ab96268a52c7c6c2@cloudsecurityweb.com/meetingtype/UpQ1JGbg8EuR65lHA9HyMQ2?bookingcode=a9a74792-b0ca-4fec-9922-dbc1cd2c49bd&anonymous&ismsaljsauthenabled&ep=mlink';
+  'https://outlook.office.com/bookwithme/user/3f6501d8044d4995ab96268a52c7c6c2@cloudsecurityweb.com/meetingtype/UpQ1JGbg8EuR65lHA9HyMQ2?bookingcode=ee6042cc-478f-4adb-a449-816373a971a5&anonymous&ismsaljsauthenabled&ep=mlink';
 
 const BOOKING_URL_ABHI =
   'https://outlook.office.com/bookwithme/user/ccf48c139cdf40f9b9575ae93ed3ed3f@cloudsecurityweb.com/meetingtype/K6leUTtTw0q22SGhvAvGoA2?anonymous&ismsaljsauthenabled&ep=mcard';
