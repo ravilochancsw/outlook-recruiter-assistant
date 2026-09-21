@@ -229,16 +229,15 @@ const INTERVIEW_BODY = [
   SIGNOFF,
 ].join('\n');
 
-/** Provided by the user. Meant to be sent to candidates. */
-const BOOKING_URL_RAVILOCHAN =
-  'https://outlook.office.com/bookwithme/user/3f6501d8044d4995ab96268a52c7c6c2@cloudsecurityweb.com/meetingtype/UpQ1JGbg8EuR65lHA9HyMQ2?bookingcode=ee6042cc-478f-4adb-a449-816373a971a5&anonymous&ismsaljsauthenabled&ep=mlink';
-
-/** Round two — same calendar as the screening, a different meeting type. */
-const BOOKING_URL_INTERVIEW =
-  'https://outlook.office.com/bookwithme/user/3f6501d8044d4995ab96268a52c7c6c2@cloudsecurityweb.com/meetingtype/ps9cw8UA00mSWOwwwV6NZw2?bookingcode=5611fdad-2e9f-4547-a07a-9affe583b035&anonymous&ismsaljsauthenabled&ep=mlink';
-
-const BOOKING_URL_ABHI =
-  'https://outlook.office.com/bookwithme/user/ccf48c139cdf40f9b9575ae93ed3ed3f@cloudsecurityweb.com/meetingtype/K6leUTtTw0q22SGhvAvGoA2?anonymous&ismsaljsauthenabled&ep=mcard';
+/**
+ * Bookings links are per-installation, not shipped. Each user's real link
+ * identifies their own Microsoft 365 mailbox and calendar, so it belongs in
+ * this installation's Options (`chrome.storage.local`), never in source —
+ * hardcoding one here would land it in version control for good. Until a
+ * link is configured, `renderTemplate` fails closed rather than sending a
+ * candidate a template with no working link.
+ */
+const BOOKING_URL_UNSET = undefined;
 
 export const DEFAULT_SETTINGS: Settings = {
   jobTitle: 'AI Full Stack Software Engineer',
@@ -278,7 +277,7 @@ export const DEFAULT_SETTINGS: Settings = {
       subject: 'Technical Screening – {{JOB_TITLE}}',
       bodyHtml: SHORTLIST_SELF_BODY,
       requiresBookingUrl: true,
-      bookingUrl: BOOKING_URL_RAVILOCHAN,
+      bookingUrl: BOOKING_URL_UNSET,
       interviewerName: 'Ravilochan',
       interviewerTitle: 'Head of Engineering',
       tone: 'positive',
@@ -291,7 +290,7 @@ export const DEFAULT_SETTINGS: Settings = {
       subject: 'Technical Screening – {{JOB_TITLE}}',
       bodyHtml: SHORTLIST_DELEGATED_BODY,
       requiresBookingUrl: true,
-      bookingUrl: BOOKING_URL_ABHI,
+      bookingUrl: BOOKING_URL_UNSET,
       interviewerName: 'Abhi',
       interviewerTitle: 'Software Engineer',
       tone: 'positive',
@@ -305,7 +304,7 @@ export const DEFAULT_SETTINGS: Settings = {
       subject: 'Technical Interview – {{JOB_TITLE}}',
       bodyHtml: INTERVIEW_BODY,
       requiresBookingUrl: true,
-      bookingUrl: BOOKING_URL_INTERVIEW,
+      bookingUrl: BOOKING_URL_UNSET,
       interviewerName: 'Ravilochan',
       interviewerTitle: 'Head of Engineering',
       tone: 'positive',

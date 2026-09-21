@@ -22,7 +22,7 @@ test('the sender address in the same dialog is not read as a recipient', () => {
   const recipients = readRecipientsFromDom();
   const emails = recipients.map((r) => r.email.toLowerCase());
 
-  assert.deepEqual(emails, ['esrisanjay2005@gmail.com']);
+  assert.deepEqual(emails, ['jordan.rivera.dev@example.com']);
   assert.ok(
     !emails.includes('ravilochan@cloudsecurityweb.com'),
     'the From address leaked into the recipient list — this blocks every action',
@@ -66,9 +66,9 @@ test('a name repeated from the address is not treated as a display name', () => 
 test('a real display name is picked up from a Name <addr> chip', () => {
   loadFixture('mock-ribbon-compose.html');
   const chip = document.querySelector('.chip');
-  chip.setAttribute('aria-label', 'Sri Sanjay E <esrisanjay2005@gmail.com>');
+  chip.setAttribute('aria-label', 'Jordan Rivera <jordan.rivera.dev@example.com>');
   const [recipient] = readRecipientsFromDom();
-  assert.equal(recipient.name, 'Sri Sanjay E');
+  assert.equal(recipient.name, 'Jordan Rivera');
 });
 
 /* ------------------------------------------------------------------ */
@@ -78,9 +78,9 @@ test('a real display name is picked up from a Name <addr> chip', () => {
 test('the mailtouri deep-link parameter yields the address', () => {
   assert.equal(
     readRecipientFromUrl(
-      'https://outlook.cloud.microsoft/mail/deeplink/compose?mailtouri=mailto%3Aesrisanjay2005%40gmail.com',
+      'https://outlook.cloud.microsoft/mail/deeplink/compose?mailtouri=mailto%3Ajordan.rivera.dev%40example.com',
     ),
-    'esrisanjay2005@gmail.com',
+    'jordan.rivera.dev@example.com',
   );
 });
 
@@ -97,7 +97,7 @@ test('the To field wins when the URL disagrees, and the mismatch is reported', (
   loadFixture('mock-ribbon-compose.html');
   // jsdom's location has no mailtouri, so the DOM is the only source here.
   const { recipient } = resolveRecipient();
-  assert.equal(recipient.email, 'esrisanjay2005@gmail.com');
+  assert.equal(recipient.email, 'jordan.rivera.dev@example.com');
   assert.ok(recipient.sources.includes('Outlook To field'));
 });
 

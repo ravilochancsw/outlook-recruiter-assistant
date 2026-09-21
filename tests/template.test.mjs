@@ -74,71 +74,73 @@ test('rejection templates never need a Bookings URL', () => {
 /* shortlist + Bookings URL                                            */
 /* ------------------------------------------------------------------ */
 
-test('both shortlist actions ship with their own configured Bookings link', () => {
-  for (const id of SHORTLIST_IDS) {
+test('every booking action ships with no configured Bookings link, and fails closed', () => {
+  // Real links are per-installation (set in Options → Templates), never shipped —
+  // shipping one would land a real mailbox and calendar in version control.
+  for (const id of BOOKING_IDS) {
+    assert.equal(DEFAULT_SETTINGS.templates[id].bookingUrl, undefined, `${id} ships a default link`);
     const out = render(id);
-    assert.equal(out.ok, true, `${id}: ${out.errors.join('; ')}`);
-    assert.match(out.bodyHtml, /<a href="https:\/\/outlook\.office\.com\/bookwithme\//);
-  }
-});
-
-test('the two shortlist actions route to different calendars', () => {
-  const [ravi, abhi] = SHORTLIST_IDS.map((id) => render(id));
-  const link = (out) => out.bodyHtml.match(/href="([^"]+)"/)[1];
-  assert.notEqual(link(ravi), link(abhi), 'both shortlist actions point at the same Bookings link');
-  assert.ok(link(ravi).includes('3f6501d8044d4995ab96268a52c7c6c2'), 'Ravilochan link changed');
-  assert.ok(link(abhi).includes('ccf48c139cdf40f9b9575ae93ed3ed3f'), 'Abhi link changed');
-});
-
-test('a shortlist action is blocked when its own Bookings URL is removed', () => {
-  for (const id of SHORTLIST_IDS) {
-    const out = renderWith(id, { bookingUrl: '' });
     assert.equal(out.ok, false);
     assert.match(out.errors.join(' '), /No Microsoft Bookings URL is configured/);
     // The message names the action, so the panel can say which button failed.
-    assert.match(out.errors.join(' '), /Shortlist →/);
+    assert.match(out.errors.join(' '), new RegExp(DEFAULT_SETTINGS.templates[id].label.replace(/[().]/g, '\\$&')));
+  }
+});
+
+test('once configured, the two shortlist actions route to different calendars', () => {
+  const raviUrl = 'https://outlook.office.com/bookwithme/user/ravi-fixture/meetingtype/one';
+  const abhiUrl = 'https://outlook.office.com/bookwithme/user/abhi-fixture/meetingtype/two';
+  const ravi = renderWith('shortlist-ravilochan', { bookingUrl: raviUrl });
+  const abhi = renderWith('shortlist-abhi', { bookingUrl: abhiUrl });
+  assert.equal(ravi.ok, true, ravi.errors.join('; '));
+  assert.equal(abhi.ok, true, abhi.errors.join('; '));
+  const link = (out) => out.bodyHtml.match(/href="([^"]+)"/)[1];
+  assert.equal(link(ravi), raviUrl);
+  assert.equal(link(abhi), abhiUrl);
+  assert.notEqual(link(ravi), link(abhi));
+});
+
+test('a shortlist action is blocked when its configured Bookings URL is cleared', () => {
+  for (const id of SHORTLIST_IDS) {
+    const configured = renderWith(id, { bookingUrl: 'https://outlook.office.com/bookwithme/user/fixture' });
+    assert.equal(configured.ok, true, configured.errors.join('; '));
+    const cleared = renderWith(id, { bookingUrl: '' });
+    assert.equal(cleared.ok, false);
+    assert.match(cleared.errors.join(' '), /No Microsoft Bookings URL is configured/);
   }
 });
 
 test('clearing one shortlist link does not block the other', () => {
   const s = settings();
   const broken = renderTemplate({ ...s.templates['shortlist-ravilochan'], bookingUrl: '' }, CANDIDATE, s);
-  const intact = renderTemplate(s.templates['shortlist-abhi'], CANDIDATE, s);
+  const intact = renderTemplate(
+    { ...s.templates['shortlist-abhi'], bookingUrl: 'https://outlook.office.com/bookwithme/user/fixture' },
+    CANDIDATE,
+    s,
+  );
   assert.equal(broken.ok, false);
   assert.equal(intact.ok, true, intact.errors.join('; '));
 });
 
-test('the real Bookings URLs survive validation byte-for-byte', () => {
-  // Every link carries valueless query params (&anonymous&ismsaljsauthenabled).
+test('a configured Bookings URL survives validation byte-for-byte', () => {
+  // Real links carry valueless query params (e.g. &anonymous&ismsaljsauthenabled).
   // If URL normalisation dropped or reordered them, booking would break.
-  for (const id of BOOKING_IDS) {
-    const original = DEFAULT_SETTINGS.templates[id].bookingUrl;
-    const { url, error } = validateBookingUrl(original);
-    assert.equal(error, undefined, `${id}: ${error}`);
-    assert.equal(url, original, `${id}: URL was rewritten`);
-  }
+  const withTrickyParams =
+    'https://outlook.office.com/bookwithme/user/fixture@example.com/meetingtype/abc?bookingcode=fixture-code&anonymous&ismsaljsauthenabled&ep=mlink';
+  const { url, error } = validateBookingUrl(withTrickyParams);
+  assert.equal(error, undefined, error);
+  assert.equal(url, withTrickyParams, 'URL was rewritten');
 });
 
-test('every booking link is the latest one supplied, and they are all distinct', () => {
-  const link = (id) => render(id).bodyHtml.match(/href="([^"]+)"/)[1];
-
-  // Round one, run by the account holder.
-  assert.match(link('shortlist-ravilochan'), /meetingtype\/UpQ1JGbg8EuR65lHA9HyMQ2\?/);
-  assert.match(link('shortlist-ravilochan'), /bookingcode=ee6042cc-478f-4adb-a449-816373a971a5/);
-
-  // Round one, delegated.
-  assert.match(link('shortlist-abhi'), /user\/ccf48c139cdf40f9b9575ae93ed3ed3f@/);
-  assert.match(link('shortlist-abhi'), /meetingtype\/K6leUTtTw0q22SGhvAvGoA2\?/);
-
-  // Round two: same calendar as round one, a different meeting type.
-  assert.match(link('interview-ravilochan'), /user\/3f6501d8044d4995ab96268a52c7c6c2@/);
-  assert.match(link('interview-ravilochan'), /meetingtype\/ps9cw8UA00mSWOwwwV6NZw2\?/);
-  assert.match(link('interview-ravilochan'), /bookingcode=5611fdad-2e9f-4547-a07a-9affe583b035/);
-
+test('distinct configured links for each booking action stay distinct after rendering', () => {
+  const urls = {
+    'shortlist-ravilochan': 'https://outlook.office.com/bookwithme/user/fixture/meetingtype/one',
+    'shortlist-abhi': 'https://outlook.office.com/bookwithme/user/fixture/meetingtype/two',
+    'interview-ravilochan': 'https://outlook.office.com/bookwithme/user/fixture/meetingtype/three',
+  };
+  const link = (id) => renderWith(id, { bookingUrl: urls[id] }).bodyHtml.match(/href="([^"]+)"/)[1];
   const all = BOOKING_IDS.map(link);
-  assert.equal(new Set(all).size, all.length, 'two actions share a Bookings link');
-  // The superseded round-one code must be gone everywhere.
-  assert.ok(!all.some((u) => u.includes('a9a74792')), 'an old booking code is still shipped');
+  assert.equal(new Set(all).size, all.length, 'two actions produced the same link from different config');
 });
 
 test('the round-two interview does not promise there is no coding exercise', () => {
@@ -149,7 +151,9 @@ test('the round-two interview does not promise there is no coding exercise', () 
 });
 
 test('the round-two interview sets up depth, design and a walkthrough', () => {
-  const out = render('interview-ravilochan');
+  const out = renderWith('interview-ravilochan', {
+    bookingUrl: 'https://outlook.office.com/bookwithme/user/fixture',
+  });
   assert.equal(out.ok, true, out.errors.join('; '));
   assert.equal(out.subject, 'Technical Interview – AI Full Stack Software Engineer');
   assert.match(out.bodyText, /one-hour technical discussion over Microsoft Teams/);
@@ -176,7 +180,12 @@ test('the interview and the screening are clearly different emails', () => {
 });
 
 test('ampersands are entity-escaped in href but raw in the text rendering', () => {
-  const out = render('shortlist-abhi');
+  // Real Bookings links carry valueless query params chained with bare &, e.g.
+  // ?anonymous&ismsaljsauthenabled&ep=mcard — fixture reproduces that shape.
+  const out = renderWith('shortlist-abhi', {
+    bookingUrl: 'https://outlook.office.com/bookwithme/user/fixture?anonymous&ismsaljsauthenabled&ep=mcard',
+  });
+  assert.equal(out.ok, true, out.errors.join('; '));
   // ?anonymous is the first param; the separators before the rest must be escaped.
   assert.ok(out.bodyHtml.includes('&amp;ismsaljsauthenabled'), 'href must escape & to be valid HTML');
   assert.ok(out.bodyHtml.includes('&amp;ep=mcard'));
@@ -187,7 +196,15 @@ test('ampersands are entity-escaped in href but raw in the text rendering', () =
 
 test('every shipped template is confirmed copy, not a placeholder', () => {
   for (const id of ACTION_ORDER) {
-    const out = render(id);
+    // isPlaceholder is about the wording, independent of whether a Bookings
+    // link happens to be configured yet — so it is checked directly rather
+    // than through render(), which fails closed on the booking actions until
+    // a link is set.
+    assert.equal(DEFAULT_SETTINGS.templates[id].isPlaceholder, false, `${id} is still a placeholder`);
+
+    const out = DEFAULT_SETTINGS.templates[id].requiresBookingUrl
+      ? renderWith(id, { bookingUrl: 'https://outlook.office.com/bookwithme/user/fixture' })
+      : render(id);
     assert.equal(out.ok, true, `${id}: ${out.errors.join('; ')}`);
     assert.deepEqual(out.warnings, [], `${id} still warns: ${out.warnings.join('; ')}`);
   }
@@ -395,7 +412,7 @@ test('a name is never derived from the email address', () => {
 /* misc                                                                */
 /* ------------------------------------------------------------------ */
 
-test('all five actions exist and render cleanly out of the box', () => {
+test('all five actions exist; the two rejections render cleanly out of the box, the rest once configured', () => {
   assert.deepEqual(ACTION_ORDER, [
     'reject-direct',
     'reject-in-process',
@@ -404,7 +421,9 @@ test('all five actions exist and render cleanly out of the box', () => {
     'interview-ravilochan',
   ]);
   for (const id of ACTION_ORDER) {
-    const out = render(id);
+    const out = DEFAULT_SETTINGS.templates[id].requiresBookingUrl
+      ? renderWith(id, { bookingUrl: 'https://outlook.office.com/bookwithme/user/fixture' })
+      : render(id);
     assert.equal(out.ok, true, `${id}: ${out.errors.join('; ')}`);
   }
 });

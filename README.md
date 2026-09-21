@@ -12,7 +12,7 @@ No backend, no APIs, no analytics. There is not a single network call in the bui
 
 - [What it does](#what-it-does)
 - [Install](#install)
-- [The four actions](#the-four-actions)
+- [The five actions](#the-five-actions)
 - [Cleanup of the original email](#cleanup-of-the-original-email)
 - [Settings](#settings)
 - [Safety rules](#safety-rules)
@@ -23,6 +23,7 @@ No backend, no APIs, no analytics. There is not a single network call in the bui
 - [Development](#development)
 - [Scope](#scope)
 - [Known limitations](#known-limitations)
+- [License](#license)
 
 ---
 
@@ -34,8 +35,8 @@ Your workflow is unchanged. The extension joins at step 5.
 2. Preview the resume and review the candidate — GitHub, LeetCode, whatever you normally do.
 3. Click the candidate's address inside the PDF.
 4. Outlook opens a compose window with them already in the **To** field.
-5. **The Recruiter Assistant panel appears, bottom-right, with four actions.**
-6. Click one, or press **Ctrl+1–Ctrl+4**. Subject and body are filled from your template.
+5. **The Recruiter Assistant panel appears, bottom-right, with five actions.**
+6. Click one, or press **Ctrl+1–Ctrl+5**. Subject and body are filled from your template.
 7. Read it, then **⌘+Enter** (or press Send).
 8. Back in your inbox tab, a prompt offers to delete the original LinkedIn email —
    **⌘+Enter** or **Enter** to delete, **Esc** to keep.
@@ -67,7 +68,7 @@ toolbar menu says *"Can't read or change site's data"*, the host in your address
 not in the manifest — add it to `src/manifest.json` (both `host_permissions` and
 `content_scripts[0].matches`), rebuild, then reload the extension **and** the tab.
 
-## The four actions
+## The five actions
 
 | # | Action | Subject | Books |
 | --- | --- | --- | --- |
@@ -80,7 +81,7 @@ not in the manifest — add it to `src/manifest.json` (both `host_permissions` a
 New actions are **appended**, never inserted: the shortcuts are positional, so
 slotting one in beside the screenings would silently remap the others.
 
-All four carry confirmed copy. The panel appears only when a compose surface is found
+All five carry confirmed copy. The panel appears only when a compose surface is found
 **and** the To field holds exactly one recipient — with two, there is no way to be
 certain who the email is for, so it refuses and says so.
 
@@ -169,7 +170,7 @@ If the draft already has content you get *replace everything* / *insert at top* 
 
 | Key | Where | Does |
 | --- | --- | --- |
-| `Ctrl+1` … `Ctrl+4` | compose tab, panel showing | applies that action, in panel order |
+| `Ctrl+1` … `Ctrl+5` | compose tab, panel showing | applies that action, in panel order |
 | `⌘/Ctrl+Enter` | compose tab | Outlook's own send — the extension only observes it |
 | `Enter` | inbox tab, prompt showing | deletes (the Delete button is focused for you) |
 | `⌘/Ctrl+Enter` | inbox tab, prompt showing | deletes, from wherever focus happens to be |
@@ -352,15 +353,18 @@ src/
 │   ├── fill.ts              React-safe + editor-safe writes with read-back checks
 │   ├── send-detector.ts     sent vs discarded vs abandoned
 │   ├── source-email.ts      snapshot, verify, delete, cleanup prompt
-│   └── recruiter-ui.ts      the four-action panel
+│   └── recruiter-ui.ts      the five-action panel
 ├── options/                 settings page
 ├── popup/                   toolbar status popup
 └── shared/
-    ├── config.ts            settings shape + the four templates
+    ├── config.ts            settings shape + the five templates
     ├── template.ts          substitution, escaping, fail-closed validation
     ├── messages.ts          typed cross-tab messages
+    ├── mailto.ts            parses the compose deep link's `mailtouri`
+    ├── send-message.ts      fire-and-forget messaging that survives a reload
     ├── settings.ts          storage wrapper + migrations
-    ├── redact.ts            email extraction / masking
+    ├── redact.ts            email extraction
+    ├── types.ts             re-exports the settings/template types
     └── log.ts               namespaced logging, off by default
 ```
 
@@ -448,6 +452,12 @@ template and action model would extend to these; nothing in the code anticipates
   against the browser harnesses. The two rejection templates have been used for real.
 - The "More actions" fallback for Delete, and the subject-as-`contenteditable` fallback,
   are tested against mocks rather than an Outlook that actually needs them.
-- Both Bookings links are defaults in `src/shared/config.ts`, so they would land in
-  version control if this repo is ever pushed somewhere shared. Ravilochan's is a private
-  meeting type carrying a `bookingcode` access parameter.
+- Bookings links are **not** shipped as defaults — `src/shared/config.ts` leaves
+  `bookingUrl` unset on every template. Each installation configures its own in
+  **Settings → Templates**; until that is done, the shortlist and interview actions
+  fail closed (see "Rendering fails closed" above) rather than sending a candidate a
+  dead link.
+
+## License
+
+[MIT](LICENSE)
