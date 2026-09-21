@@ -8,7 +8,7 @@ import { setDebugLogging } from '../shared/log';
 import { sendToBackground } from '../shared/send-message';
 
 /**
- * The recruiter panel. Shows the four actions once a compose window with exactly
+ * The recruiter panel. Shows the five actions once a compose window with exactly
  * one recipient is detected, fills the chosen template, and then gets out of the
  * way so the user reviews and presses Outlook's own Send button.
  *
@@ -318,7 +318,7 @@ function render(...extras: HTMLElement[]): void {
   body.append(
     el('div', {
       className: 'hint-row',
-      textContent: 'Ctrl+1–4 to apply · ⌘+Enter in Outlook to send',
+      textContent: 'Ctrl+1–5 to apply · ⌘+Enter in Outlook to send',
     }),
   );
 
@@ -326,7 +326,7 @@ function render(...extras: HTMLElement[]): void {
 }
 
 /**
- * Ctrl+1..4 applies the corresponding action.
+ * Ctrl+1..5 applies the corresponding action.
  *
  * The combination is heavily constrained, and every alternative is ruled out by
  * something concrete:
