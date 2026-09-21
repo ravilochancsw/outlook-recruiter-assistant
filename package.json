@@ -2,6 +2,11 @@
   "name": "recruiter-assistant",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ravilochancsw/outlook-recruiter-assistant.git"
+  },
   "description": "Chrome extension that fills recruiter reply templates into an Outlook Web compose window and offers to clean up the original LinkedIn application email. No backend, no APIs, never sends mail itself.",
   "type": "module",
   "scripts": {
