@@ -207,11 +207,11 @@ test('the plain-text rendering keeps paragraphs readable', () => {
 test('the opener link is only accepted when the compose URL names this candidate', () => {
   const { parseMailtoRecipient } = libSync;
   const url =
-    'https://outlook.cloud.microsoft/mail/deeplink/compose?mailtouri=mailto%3Aesrisanjay2005%40gmail.com';
+    'https://outlook.cloud.microsoft/mail/deeplink/compose?mailtouri=mailto%3Ajordan.rivera.dev%40example.com';
 
   // The exact check the service worker applies before it will attach a source
   // snapshot to a workflow.
-  assert.equal(parseMailtoRecipient(url), 'esrisanjay2005@gmail.com');
+  assert.equal(parseMailtoRecipient(url), 'jordan.rivera.dev@example.com');
   // A tab opened from the inbox for any other reason carries no mailtouri, so the
   // recorded source message can never authorise a deletion.
   assert.equal(parseMailtoRecipient('https://outlook.cloud.microsoft/mail/inbox/id/MSG-1'), null);
@@ -320,9 +320,9 @@ test('the intended recipient is parsed from the deep link, not the rewritten URL
   // Captured at tab creation from the deep link...
   assert.equal(
     parseMailtoRecipient(
-      'https://outlook.cloud.microsoft/mail/deeplink/compose?mailtouri=mailto%3Aesrisanjay2005%40gmail.com',
+      'https://outlook.cloud.microsoft/mail/deeplink/compose?mailtouri=mailto%3Ajordan.rivera.dev%40example.com',
     ),
-    'esrisanjay2005@gmail.com',
+    'jordan.rivera.dev@example.com',
   );
   // ...because by fill time Outlook has replaced it with this, and reading it
   // then blocked every cleanup.
@@ -398,10 +398,10 @@ test('the resume preview is not mistaken for the message', () => {
   const preview = document.createElement('div');
   preview.setAttribute('role', 'document');
   preview.innerHTML =
-    '<div>Sri_Sanjay_E_Resume.pdf <button>Download</button><button>Print</button>' +
+    '<div>Jordan_Rivera_Resume.pdf <button>Download</button><button>Print</button>' +
     '<button>Save to OneDrive</button></div>' +
-    '<div role="heading">SRI SANJAY E — Full-Stack Developer, a very long resume heading indeed</div>' +
-    '<p>esrisanjay2005@gmail.com</p>';
+    '<div role="heading">JORDAN RIVERA — Full-Stack Developer, a very long resume heading indeed</div>' +
+    '<p>jordan.rivera.dev@example.com</p>';
   document.body.prepend(preview);
 
   const snapshot = captureSnapshot();
@@ -412,7 +412,7 @@ test('the resume preview is not mistaken for the message', () => {
   );
   assert.equal(snapshot.sender, 'LinkedIn');
   assert.match(snapshot.subject, /New application/);
-  assert.ok(!/SRI SANJAY/.test(snapshot.subject), 'subject came from the resume');
+  assert.ok(!/JORDAN RIVERA/.test(snapshot.subject), 'subject came from the resume');
 });
 
 test('verification also ignores the resume preview', () => {

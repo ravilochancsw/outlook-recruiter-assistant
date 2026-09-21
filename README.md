@@ -448,6 +448,8 @@ template and action model would extend to these; nothing in the code anticipates
   against the browser harnesses. The two rejection templates have been used for real.
 - The "More actions" fallback for Delete, and the subject-as-`contenteditable` fallback,
   are tested against mocks rather than an Outlook that actually needs them.
-- Both Bookings links are defaults in `src/shared/config.ts`, so they would land in
-  version control if this repo is ever pushed somewhere shared. Ravilochan's is a private
-  meeting type carrying a `bookingcode` access parameter.
+- Bookings links are **not** shipped as defaults — `src/shared/config.ts` leaves
+  `bookingUrl` unset on every template. Each installation configures its own in
+  **Settings → Templates**; until that is done, the shortlist and interview actions
+  fail closed (see "Rendering fails closed" above) rather than sending a candidate a
+  dead link.
