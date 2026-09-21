@@ -360,8 +360,11 @@ src/
     ├── config.ts            settings shape + the five templates
     ├── template.ts          substitution, escaping, fail-closed validation
     ├── messages.ts          typed cross-tab messages
+    ├── mailto.ts            parses the compose deep link's `mailtouri`
+    ├── send-message.ts      fire-and-forget messaging that survives a reload
     ├── settings.ts          storage wrapper + migrations
-    ├── redact.ts            email extraction / masking
+    ├── redact.ts            email extraction
+    ├── types.ts             re-exports the settings/template types
     └── log.ts               namespaced logging, off by default
 ```
 
