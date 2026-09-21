@@ -23,6 +23,7 @@ No backend, no APIs, no analytics. There is not a single network call in the bui
 - [Development](#development)
 - [Scope](#scope)
 - [Known limitations](#known-limitations)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -457,6 +458,12 @@ template and action model would extend to these; nothing in the code anticipates
   **Settings → Templates**; until that is done, the shortlist and interview actions
   fail closed (see "Rendering fails closed" above) rather than sending a candidate a
   dead link.
+
+## Contributing
+
+PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for what to run before opening
+one and what never to commit. `main` is protected: everything merges through a
+reviewed pull request.
 
 ## License
 
